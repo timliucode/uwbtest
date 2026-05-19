@@ -13,6 +13,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -49,6 +50,7 @@ import java.util.Locale
  * 使用 collectAsStateWithLifecycle()（非 collectAsState()）
  * 確保 App 進入背景時暫停收集，避免不必要的 ranging 耗電。
  */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RangingScreen(
     onStop: () -> Unit,

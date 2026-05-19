@@ -20,6 +20,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -40,6 +41,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
 /**
  * Screen 3：OOB（Out-of-Band）參數交換畫面。
+ * @OptIn 是因為 Scaffold + TopAppBar 在 Material3 中仍標記為 experimental API。
  *
  * 使用說明：
  *   1. 記下「My Address」並複製（點擊複製圖示）
@@ -50,6 +52,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
  *
  * Reverse Bytes 開關：Android 13 UWB 地址 byte-order 已知 bug 的 debug 工具。
  */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun OobExchangeScreen(
     onStartRanging: () -> Unit,

@@ -5,7 +5,7 @@ import android.content.pm.PackageManager
 import android.os.Build
 import android.util.Log
 import androidx.core.uwb.RangingParameters
-import androidx.core.uwb.UwbAddress
+import androidx.core.uwb.UwbClientSessionScope
 import androidx.core.uwb.UwbComplexChannel
 import androidx.core.uwb.UwbControleeSessionScope
 import androidx.core.uwb.UwbControllerSessionScope
@@ -21,6 +21,8 @@ import com.example.uwbtest.domain.repository.UwbRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -157,7 +159,9 @@ class UwbRepositoryImpl @Inject constructor(
     // startRanging — 重用快取 scope，建立 Flow<RangingState>
     // ─────────────────────────────────────────────────────────────
 
-    override fun startRanging(oobParams: OobParams): Flow<RangingState> {
+    override fun startRanging(oobParams: OobParams): Flow<RangingState> = flow {
+        // ── 參數準備 ─────────────────────────────────────────────
+
         // 決定 peer address（可選 reverse bytes，用於 Android 13 byte-order debug）
         val rawPeerAddress = if (oobParams.reverseBytes) {
             oobParams.peerAddress.reversedArray()
@@ -171,13 +175,18 @@ class UwbRepositoryImpl @Inject constructor(
             .map { it.toInt(16).toByte() }
             .toByteArray()
 
-        val peerDevice = UwbDevice.createForAddress(UwbAddress(rawPeerAddress))
+        // 1.0.0：createForAddress 直接接受 ByteArray，不再包裝成 UwbAddress
+        val peerDevice = UwbDevice.createForAddress(rawPeerAddress)
         val complexChannel = UwbComplexChannel(oobParams.channelNumber, oobParams.preambleIndex)
 
+        // 1.0.0：RangingParameters 新增必填欄位 subSessionId + subSessionKeyInfo
+        // 單一 session 不使用 sub-session，填 0 / null 即可
         val params = RangingParameters(
             uwbConfigType = RangingParameters.CONFIG_UNICAST_DS_TWR,
-            sessionId = 0,  // 0 = auto-generate
+            sessionId = 0,           // 0 = auto-generate
+            subSessionId = 0,        // 新增（1.0.0-alpha06+）；不使用 sub-session 填 0
             sessionKeyInfo = sessionKey,
+            subSessionKeyInfo = null, // 新增（1.0.0-alpha06+）；不使用 sub-session 填 null
             complexChannel = complexChannel,
             peerDevices = listOf(peerDevice),
             updateRateType = RangingParameters.RANGING_UPDATE_RATE_AUTOMATIC,
@@ -186,24 +195,25 @@ class UwbRepositoryImpl @Inject constructor(
         Log.d(TAG, "startRanging: peer=${rawPeerAddress.toHex()}, channel=${oobParams.channelNumber}, " +
             "preamble=${oobParams.preambleIndex}, sessionKey=${oobParams.sessionKeyHex}")
 
-        // 重用快取的 scope；若無快取則拋出例外（應在呼叫 getLocalDeviceInfo 後才呼叫此方法）
-        val rangingFlow = controllerScope?.let { scope ->
-            scope.prepareSession(params).execute()
-        } ?: controleeScope?.let { scope ->
-            scope.prepareSession(params).execute()
-        } ?: throw IllegalStateException(
-            "No cached UwbScope found. Call getLocalDeviceInfo() before startRanging()."
-        )
+        // 重用快取的 scope；若無快取則拋出例外
+        val scope: UwbClientSessionScope = controllerScope ?: controleeScope
+            ?: throw IllegalStateException(
+                "No cached UwbScope found. Call getLocalDeviceInfo() before startRanging()."
+            )
 
-        return rangingFlow
-            .map { result ->
+        // 1.0.0：prepareSession() 是 suspend fun，直接回傳 Flow<RangingResult>
+        // （舊版 alpha 的 .execute() 已移除）
+        val rangingFlow = scope.prepareSession(params)
+
+        emitAll(
+            rangingFlow.map { result ->
                 Log.v(TAG, "RangingResult: ${result::class.simpleName}")
                 mapper.map(result)
             }
-            .catch { e ->
-                Log.e(TAG, "Ranging flow error", e)
-                emit(RangingState.Failure("Ranging error: ${e.message}"))
-            }
+        )
+    }.catch { e ->
+        Log.e(TAG, "Ranging flow error", e)
+        emit(RangingState.Failure("Ranging error: ${e.message}"))
     }
 
     // ─────────────────────────────────────────────────────────────

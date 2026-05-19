@@ -1,7 +1,6 @@
 package com.example.uwbtest.data.uwb
 
 import androidx.core.uwb.RangingResult
-import androidx.core.uwb.RangingResultFailure
 import com.example.uwbtest.domain.model.RangingState
 import javax.inject.Inject
 
@@ -38,10 +37,12 @@ class RangingResultMapper @Inject constructor() {
             }
 
             is RangingResult.RangingResultFailure -> {
+                // 1.0.0：RangingResultFailure 是 RangingResult 的中頂層嵌套類別，
+                // 常數透過 RangingResult.RangingResultFailure.CONSTANT 存取
                 val reasonText = when (result.reason) {
-                    RangingResultFailure.RANGING_FAILURE_REASON_UNKNOWN ->
+                    RangingResult.RangingResultFailure.RANGING_FAILURE_REASON_UNKNOWN ->
                         "Unknown failure"
-                    RangingResultFailure.RANGING_FAILURE_REASON_STOPPED_BY_REQUEST ->
+                    RangingResult.RangingResultFailure.RANGING_FAILURE_REASON_STOPPED_BY_REQUEST ->
                         "Stopped by request"
                     else ->
                         "Failure (reason code: ${result.reason})"

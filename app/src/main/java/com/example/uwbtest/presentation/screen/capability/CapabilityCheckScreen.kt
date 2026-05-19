@@ -14,6 +14,7 @@ import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Error
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Button
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -42,6 +43,7 @@ import com.example.uwbtest.presentation.component.PermissionHandler
  *   2. 授予 → vm.check() → 顯示硬體/軟體兩層狀態
  *   3. 兩層都通過 → 啟用「繼續」按鈕
  */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CapabilityCheckScreen(
     onProceed: () -> Unit,
