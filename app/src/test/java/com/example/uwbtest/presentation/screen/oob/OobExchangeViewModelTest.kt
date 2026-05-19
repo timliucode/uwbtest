@@ -234,9 +234,75 @@ class OobExchangeViewModelTest {
         val vm = buildViewModel(isController = true)
 
         vm.onPeerAddressChanged("A1:B2")
-        vm.onSessionKeyChanged("0102030405060708")
+        // session key is auto-generated for controller, no need to set it manually
 
         assertThat(vm.uiState.value.canProceed).isTrue()
+    }
+
+    // ── Session Key 隨機生成 ───────────────────────────────────────────────
+
+    @Test
+    fun `init - controller generates random session key of 16 hex chars`() = runTest {
+        whenever(getLocalAddress(true)).thenReturn(Result.success(controllerDeviceInfo))
+        val vm = buildViewModel(isController = true)
+
+        val key = vm.uiState.value.sessionKeyHex
+        assertThat(key).hasLength(16)
+        assertThat(key).matches("[0-9A-F]{16}")
+    }
+
+    @Test
+    fun `init - controller generates different key each time`() = runTest {
+        whenever(getLocalAddress(true)).thenReturn(Result.success(controllerDeviceInfo))
+        val vm1 = buildViewModel(isController = true)
+        val vm2 = buildViewModel(isController = true)
+
+        assertThat(vm1.uiState.value.sessionKeyHex).isNotEqualTo(vm2.uiState.value.sessionKeyHex)
+    }
+
+    @Test
+    fun `init - controlee starts with empty session key`() = runTest {
+        whenever(getLocalAddress(false)).thenReturn(Result.success(controleeDeviceInfo))
+        val vm = buildViewModel(isController = false)
+
+        assertThat(vm.uiState.value.sessionKeyHex).isEmpty()
+    }
+
+    // ── onQrScanned ───────────────────────────────────────────────────────
+
+    @Test
+    fun `onQrScanned - fills peer address, channel, preamble and key from controller QR`() = runTest {
+        whenever(getLocalAddress(false)).thenReturn(Result.success(controleeDeviceInfo))
+        val vm = buildViewModel(isController = false)
+
+        vm.onQrScanned("""{"addr":"A1:B2","ch":9,"pr":11,"key":"DEADBEEFDEADBEEF"}""")
+
+        assertThat(vm.uiState.value.peerAddressHex).isEqualTo("A1:B2")
+        assertThat(vm.uiState.value.channelNumber).isEqualTo("9")
+        assertThat(vm.uiState.value.preambleIndex).isEqualTo("11")
+        assertThat(vm.uiState.value.sessionKeyHex).isEqualTo("DEADBEEFDEADBEEF")
+    }
+
+    @Test
+    fun `onQrScanned - only fills addr when QR has no ch or pr`() = runTest {
+        whenever(getLocalAddress(false)).thenReturn(Result.success(controleeDeviceInfo))
+        val vm = buildViewModel(isController = false)
+        val originalChannel = vm.uiState.value.channelNumber
+
+        vm.onQrScanned("""{"addr":"A1:B2","key":"DEADBEEFDEADBEEF"}""")
+
+        assertThat(vm.uiState.value.peerAddressHex).isEqualTo("A1:B2")
+        assertThat(vm.uiState.value.channelNumber).isEqualTo(originalChannel)
+    }
+
+    @Test
+    fun `onQrScanned - ignores invalid QR content silently`() = runTest {
+        whenever(getLocalAddress(false)).thenReturn(Result.success(controleeDeviceInfo))
+        val vm = buildViewModel(isController = false)
+
+        vm.onQrScanned("not-a-valid-qr")
+
+        assertThat(vm.uiState.value.peerAddressHex).isEmpty()
     }
 
     @Test
