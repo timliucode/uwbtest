@@ -6,8 +6,8 @@ app/bin/
 # Gradle cache (本地建置快取，不應共用)
 .gradle/
 
-# Gradle wrapper jar (可從 gradlew 重新產生)
-gradle/wrapper/gradle-wrapper.jar
+# Gradle wrapper jar — 納入版控方便離線 / CI 無網路環境建構
+# gradle/wrapper/gradle-wrapper.jar
 
 # Local configuration (機器相關，不能共用)
 local.properties
