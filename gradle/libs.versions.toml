@@ -11,6 +11,13 @@ hilt = "2.56.2"
 hiltNavigationCompose = "1.2.0"
 coroutines = "1.9.0"
 uwb = "1.0.0"
+junit4            = "4.13.2"
+mockitoKotlin     = "5.4.0"
+turbine           = "1.2.0"
+truth             = "1.4.4"
+coroutinesTest    = "1.9.0"
+archCoreTesting   = "2.2.0"
+robolectric       = "4.14.1"
 
 [libraries]
 # AndroidX Core
@@ -47,6 +54,15 @@ kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-
 
 # UWB ← 主角
 androidx-uwb = { group = "androidx.core.uwb", name = "uwb", version.ref = "uwb" }
+
+# Test
+junit4                  = { group = "junit", name = "junit", version.ref = "junit4" }
+mockito-kotlin          = { group = "org.mockito.kotlin", name = "mockito-kotlin", version.ref = "mockitoKotlin" }
+turbine                 = { group = "app.cash.turbine", name = "turbine", version.ref = "turbine" }
+truth                   = { group = "com.google.truth", name = "truth", version.ref = "truth" }
+kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "coroutinesTest" }
+androidx-arch-core-test = { group = "androidx.arch.core", name = "core-testing", version.ref = "archCoreTesting" }
+robolectric             = { group = "org.robolectric", name = "robolectric", version.ref = "robolectric" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
