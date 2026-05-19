@@ -30,11 +30,8 @@ import androidx.compose.ui.unit.dp
 /**
  * Screen 2：角色選擇畫面。
  *
- * Controller：發起 ranging session，決定 UWB 信道
- *   → 對應 S23 Ultra（SM-S9180）
- *
- * Controlee：回應 ranging session，向 Controller 回報位置
- *   → 對應 Note20 Ultra（SM-N9860）
+ * Controller：發起 ranging session，決定 UWB 信道（initiator）
+ * Controlee：回應 ranging session，向 Controller 回報位置（responder）
  *
  * 此畫面無 ViewModel，點擊直接透過回調導航。
  */
@@ -76,7 +73,7 @@ fun RoleSelectScreen(
                     icon = Icons.Default.Router,
                     role = "Controller",
                     roleZh = "控制器",
-                    description = "發起 ranging session\n決定 UWB 信道\n\n建議：S23 Ultra\n(SM-S9180)",
+                    description = "發起 ranging session\n決定 UWB 信道\n(Initiator)",
                     onClick = onControllerSelected,
                     modifier = Modifier.weight(1f),
                 )
@@ -84,7 +81,7 @@ fun RoleSelectScreen(
                     icon = Icons.Default.Smartphone,
                     role = "Controlee",
                     roleZh = "受控方",
-                    description = "回應 ranging session\n向 Controller 回報位置\n\n建議：Note20 Ultra\n(SM-N9860)",
+                    description = "回應 ranging session\n向 Controller 回報位置\n(Responder)",
                     onClick = onControleeSelected,
                     modifier = Modifier.weight(1f),
                 )

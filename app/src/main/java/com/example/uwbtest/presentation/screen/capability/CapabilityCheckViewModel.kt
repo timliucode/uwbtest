@@ -1,5 +1,6 @@
 package com.example.uwbtest.presentation.screen.capability
 
+import android.os.Build
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.uwbtest.domain.model.UwbCapability
@@ -12,13 +13,56 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 /**
- * CapabilityCheckScreen 的 ViewModel。
- * 負責觸發 UWB 能力檢查並將結果暴露給 UI。
+ * CapabilityCheckViewModel：UWB 能力檢查畫面的 ViewModel。
+ *
+ * 同時提供靜態的 [DeviceInfo]（從 Build.* 讀取，無需非同步），
+ * 讓 Screen 在畫面載入時立即顯示裝置基本資訊。
  */
 @HiltViewModel
 class CapabilityCheckViewModel @Inject constructor(
     private val checkCapability: CheckUwbCapabilityUseCase,
 ) : ViewModel() {
+
+    // ── 裝置資訊（靜態，畫面載入即可用）────────────────────────
+
+    /**
+     * 從 [Build] 讀取的裝置資訊，供 Screen 顯示與複製。
+     *
+     * @property manufacturer  製造商（e.g. "samsung"）
+     * @property model         型號（e.g. "SM-S9180"）
+     * @property androidVersion Android 版本字串（e.g. "14"）
+     * @property sdkLevel      API Level（e.g. 34）
+     * @property oneUiVersion  Samsung OneUI 版本（e.g. "8.5"）；非 Samsung 為 null
+     * @property buildDisplay  Build ID / 韌體識別碼（e.g. "S9180ZTU1AWD1"）
+     * @property formattedText 供複製的完整文字（含 UWB 狀態由 Screen 補入）
+     */
+    data class DeviceInfo(
+        val manufacturer: String,
+        val model: String,
+        val androidVersion: String,
+        val sdkLevel: Int,
+        val oneUiVersion: String?,
+        val buildDisplay: String,
+    ) {
+        /** 格式化為多行文字，方便複製分享（uwbStatus 由呼叫端補入） */
+        fun toClipboardText(uwbHardware: String = "—", uwbAvailable: String = "—"): String =
+            buildString {
+                appendLine("=== Device Info ===")
+                appendLine("Manufacturer : $manufacturer")
+                appendLine("Model        : $model")
+                appendLine("Android      : $androidVersion (API $sdkLevel)")
+                if (oneUiVersion != null) appendLine("OneUI        : $oneUiVersion")
+                appendLine("Build        : $buildDisplay")
+                appendLine("UWB Hardware : $uwbHardware")
+                appendLine("UWB Available: $uwbAvailable")
+                append("===================")
+            }
+    }
+
+    /** 進入畫面即可讀取，不需等待 UWB 檢查 */
+    val deviceInfo: DeviceInfo = buildDeviceInfo()
+
+    // ── UWB 能力 UiState ────────────────────────────────────────
 
     sealed interface UiState {
         data object Idle : UiState
@@ -46,5 +90,45 @@ class CapabilityCheckViewModel @Inject constructor(
     /** 使用者拒絕權限後呼叫 */
     fun onPermissionDenied() {
         _uiState.value = UiState.Error("UWB_RANGING permission denied. Please grant it in Settings.")
+    }
+
+    // ── Private helpers ─────────────────────────────────────────
+
+    private fun buildDeviceInfo(): DeviceInfo {
+        val oneUi = readOneUiVersion()
+        return DeviceInfo(
+            manufacturer = Build.MANUFACTURER,
+            model = Build.MODEL,
+            androidVersion = Build.VERSION.RELEASE,
+            sdkLevel = Build.VERSION.SDK_INT,
+            oneUiVersion = oneUi,
+            buildDisplay = Build.DISPLAY,
+        )
+    }
+
+    /**
+     * 讀取 Samsung OneUI 版本。
+     *
+     * Samsung 將 OneUI 版本儲存在系統屬性 `ro.build.version.oneui` 中，
+     * 格式為整數：80500 = 8.5.0、80100 = 8.1.0。
+     * 透過反射讀取 SystemProperties（無需特殊權限）。
+     *
+     * 非 Samsung 裝置或讀取失敗時回傳 null。
+     */
+    private fun readOneUiVersion(): String? {
+        if (!Build.MANUFACTURER.equals("samsung", ignoreCase = true)) return null
+        return try {
+            val clazz = Class.forName("android.os.SystemProperties")
+            val method = clazz.getMethod("get", String::class.java, String::class.java)
+            val raw = method.invoke(null, "ro.build.version.oneui", "") as? String
+            if (raw.isNullOrBlank()) return null
+            // 解析格式：80500 → "8.5" / 80100 → "8.1" / 80000 → "8.0"
+            val num = raw.toIntOrNull() ?: return raw
+            val major = num / 10000
+            val minor = (num % 10000) / 100
+            if (minor == 0) "$major.0" else "$major.$minor"
+        } catch (e: Exception) {
+            null
+        }
     }
 }
