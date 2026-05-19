@@ -52,7 +52,7 @@ jobs:
         env:
           RELEASE_VERSION_NAME: ${{ steps.version.outputs.VERSION_NAME }}
           RELEASE_VERSION_CODE: ${{ steps.version.outputs.VERSION_CODE }}
-        run: ./gradlew testReleaseUnitTest --stacktrace
+        run: ./gradlew testDebugUnitTest --stacktrace
 
       - name: Build release AAB
         env:
