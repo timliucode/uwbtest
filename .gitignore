@@ -44,3 +44,5 @@ app/src/main/java/**/NavigationArgs.kt
 # Kotlin / Java build cache
 .kotlin/
 out/
+
+.fake
