@@ -15,7 +15,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Error
 import androidx.compose.material.icons.filled.Warning
@@ -41,7 +40,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.example.uwbtest.domain.model.UwbCapability
 import com.example.uwbtest.presentation.component.PermissionHandler
 
 /**
@@ -128,7 +126,26 @@ fun CapabilityCheckScreen(
                 }
 
                 is CapabilityCheckViewModel.UiState.Success -> {
-                    CapabilityResultCard(capability = state.capability)
+                    // DeviceInfoCard 已顯示 UWB Hardware / UWB Available，
+                    // 此處只補充「不可用時的原因說明」
+                    if (!state.capability.isAvailable && state.capability.unavailableReason != null) {
+                        Card(
+                            colors = CardDefaults.cardColors(containerColor = Color(0xFFFFEBEE)),
+                            modifier = Modifier.fillMaxWidth(),
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(16.dp),
+                                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                                verticalAlignment = Alignment.Top,
+                            ) {
+                                Icon(Icons.Default.Error, null, tint = Color(0xFFF44336))
+                                Text(
+                                    text = state.capability.unavailableReason,
+                                    style = MaterialTheme.typography.bodySmall,
+                                )
+                            }
+                        }
+                    }
 
                     // Android 13 byte-order 提示
                     if (state.capability.isAndroid13OrLower && state.capability.isAvailable) {
@@ -279,59 +296,6 @@ private fun InfoRow(
             color = valueColor,
             modifier = Modifier.weight(2f),
         )
-    }
-}
-
-// ── UWB 能力結果卡 ──────────────────────────────────────────────
-
-@Composable
-private fun CapabilityResultCard(capability: UwbCapability) {
-    Card(modifier = Modifier.fillMaxWidth()) {
-        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text("UWB 能力 / UWB Capability", style = MaterialTheme.typography.titleSmall)
-
-            CapabilityRow(
-                label = "UWB Hardware",
-                ok = capability.hardwarePresent,
-                detail = if (capability.hardwarePresent) "Present ✓" else "Not found ✗",
-            )
-            CapabilityRow(
-                label = "UWB API Available",
-                ok = capability.isAvailable,
-                detail = if (capability.isAvailable) "Available ✓" else "Unavailable ✗",
-            )
-
-            if (!capability.isAvailable && capability.unavailableReason != null) {
-                Text(
-                    text = capability.unavailableReason,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = Color(0xFFF44336),
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun CapabilityRow(label: String, ok: Boolean, detail: String) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Text(label, style = MaterialTheme.typography.bodyMedium)
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(4.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Icon(
-                imageVector = if (ok) Icons.Default.CheckCircle else Icons.Default.Error,
-                contentDescription = null,
-                tint = if (ok) Color(0xFF4CAF50) else Color(0xFFF44336),
-                modifier = Modifier.size(18.dp),
-            )
-            Text(detail, style = MaterialTheme.typography.bodySmall)
-        }
     }
 }
 
