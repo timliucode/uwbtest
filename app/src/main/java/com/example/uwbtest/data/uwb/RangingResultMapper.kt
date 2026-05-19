@@ -37,17 +37,19 @@ class RangingResultMapper @Inject constructor() {
             }
 
             is RangingResult.RangingResultFailure -> {
-                // 1.0.0：RangingResultFailure 是 RangingResult 的中頂層嵌套類別，
-                // 常數透過 RangingResult.RangingResultFailure.CONSTANT 存取
-                val reasonText = when (result.reason) {
-                    RangingResult.RangingResultFailure.RANGING_FAILURE_REASON_UNKNOWN ->
-                        "Unknown failure"
-                    RangingResult.RangingResultFailure.RANGING_FAILURE_REASON_STOPPED_BY_REQUEST ->
-                        "Stopped by request"
-                    else ->
-                        "Failure (reason code: ${result.reason})"
+                // 1.0.0 stable：RangingResultFailure.reason 是純 Int，
+                // 官方 API 並未在此類別暴露命名常數，直接顯示 reason code 即可。
+                // 已知 reason 值參考（來自 AOSP 原始碼，非 public API）：
+                //   0 = UNKNOWN
+                //   1 = STOPPED_BY_REQUEST
+                //   3 = STOPPED_BY_SYSTEM_POLICY (e.g. country code lock on CHC firmware)
+                val reasonDescription = when (result.reason) {
+                    0 -> "Unknown failure"
+                    1 -> "Stopped by request"
+                    3 -> "Stopped by system policy (possible country code restriction)"
+                    else -> "Failure"
                 }
-                RangingState.Failure(reasonText)
+                RangingState.Failure("$reasonDescription (code: ${result.reason})")
             }
 
             else -> RangingState.Failure("Unhandled RangingResult type: ${result::class.simpleName}")

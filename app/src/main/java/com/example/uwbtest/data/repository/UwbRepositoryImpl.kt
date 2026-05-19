@@ -62,40 +62,36 @@ class UwbRepositoryImpl @Inject constructor(
         val hardwarePresent = context.packageManager
             .hasSystemFeature(PackageManager.FEATURE_UWB)
 
-        val isN9860 = Build.MODEL.contains("N9860", ignoreCase = true)
+        // Android 13 (API 33) 及以下版本存在 UWB 地址 byte-order 問題。
+        // 這是 OS 層問題，與裝置型號或韌體地區版本（BRI/CHC）無關。
+        val isAndroid13OrLower = Build.VERSION.SDK_INT <= Build.VERSION_CODES.TIRAMISU
 
         if (!hardwarePresent) {
             return UwbCapability(
                 hardwarePresent = false,
                 isAvailable = false,
                 unavailableReason = "No UWB hardware detected on this device.",
-                isN9860 = isN9860,
+                isAndroid13OrLower = isAndroid13OrLower,
             )
         }
 
         // ── 軟體層檢查 ───────────────────────────────────────────
-        // 中國版 Note20 Ultra (N9860) 可能因國碼政策拋出例外，
-        // 需用 try/catch 包裹所有 UwbManager 呼叫
         val isAvailable: Boolean
         val reason: String?
 
         try {
             isAvailable = wrapper.isAvailable()
             reason = if (!isAvailable) {
-                buildString {
-                    append("UWB hardware present but software layer unavailable. ")
-                    if (isN9860) append("Possible cause: region firmware lock (CHC CSC). ")
-                    append("Try: Settings → Connections → Ultra Wideband (UWB).")
-                }
+                "UWB hardware present but software layer unavailable. " +
+                    "Try: Settings → Connections → Ultra Wideband (UWB)."
             } else null
         } catch (e: UnsupportedOperationException) {
-            Log.w(TAG, "checkCapability: UnsupportedOperationException (likely CN firmware lock)", e)
+            Log.w(TAG, "checkCapability: UnsupportedOperationException", e)
             return UwbCapability(
                 hardwarePresent = true,
                 isAvailable = false,
-                unavailableReason = "UWB is disabled at firmware level. " +
-                    "This may be a country code policy on Chinese firmware (CHC CSC).",
-                isN9860 = isN9860,
+                unavailableReason = "UWB is disabled at firmware or system level: ${e.message}",
+                isAndroid13OrLower = isAndroid13OrLower,
             )
         } catch (e: SecurityException) {
             Log.e(TAG, "checkCapability: SecurityException — UWB_RANGING permission not granted", e)
@@ -103,7 +99,7 @@ class UwbRepositoryImpl @Inject constructor(
                 hardwarePresent = true,
                 isAvailable = false,
                 unavailableReason = "UWB_RANGING permission not granted.",
-                isN9860 = isN9860,
+                isAndroid13OrLower = isAndroid13OrLower,
             )
         } catch (e: Exception) {
             Log.e(TAG, "checkCapability: Unexpected exception", e)
@@ -111,7 +107,7 @@ class UwbRepositoryImpl @Inject constructor(
                 hardwarePresent = true,
                 isAvailable = false,
                 unavailableReason = "Unexpected error: ${e.message}",
-                isN9860 = isN9860,
+                isAndroid13OrLower = isAndroid13OrLower,
             )
         }
 
@@ -119,7 +115,7 @@ class UwbRepositoryImpl @Inject constructor(
             hardwarePresent = true,
             isAvailable = isAvailable,
             unavailableReason = reason,
-            isN9860 = isN9860,
+            isAndroid13OrLower = isAndroid13OrLower,
         )
     }
 

@@ -99,8 +99,8 @@ fun CapabilityCheckScreen(
                 is CapabilityCheckViewModel.UiState.Success -> {
                     CapabilityResultCard(capability = state.capability)
 
-                    // N9860 中國版警告
-                    if (state.capability.isN9860 && !state.capability.isAvailable) {
+                    // Android 13 byte-order 提示（OS 版本問題，非韌體地區問題）
+                    if (state.capability.isAndroid13OrLower && state.capability.isAvailable) {
                         Card(
                             colors = CardDefaults.cardColors(
                                 containerColor = Color(0xFFFFF3E0),
@@ -118,11 +118,11 @@ fun CapabilityCheckScreen(
                                     tint = Color(0xFFFF9800),
                                 )
                                 Text(
-                                    text = "⚠️ SM-N9860 中國版韌體偵測到\n" +
-                                        "此機型（Note20 Ultra CHC）可能因國碼政策停用 UWB。\n" +
-                                        "如您的裝置使用 TGY（香港）等非 CHC 韌體，UWB 應可正常使用。\n\n" +
-                                        "N9860 detected. Chinese firmware (CHC CSC) may disable UWB " +
-                                        "via country code policy. Devices with TGY (Hong Kong) CSC may work.",
+                                    text = "💡 Android 13 偵測到\n" +
+                                        "此 OS 版本存在 UWB 地址 byte-order 已知問題。\n" +
+                                        "若 ranging 無法建立，請在 OOB 交換畫面開啟「Reverse Bytes」開關。\n\n" +
+                                        "Android 13 detected. Known UWB address byte-order issue may occur. " +
+                                        "If ranging fails, toggle 'Reverse Bytes' on the OOB screen.",
                                     style = MaterialTheme.typography.bodySmall,
                                 )
                             }
