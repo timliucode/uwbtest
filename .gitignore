@@ -1,0 +1,46 @@
+# Built output
+/build/
+app/build/
+app/bin/
+
+# Gradle cache (本地建置快取，不應共用)
+.gradle/
+
+# Gradle wrapper jar (可從 gradlew 重新產生)
+gradle/wrapper/gradle-wrapper.jar
+
+# Local configuration (機器相關，不能共用)
+local.properties
+
+# Android Studio / IntelliJ IDEA
+.idea/
+!.idea/runConfigurations/
+*.iml
+*.iws
+*.ipr
+
+# VS Code / Visual Studio
+.vs/
+.vscode/
+
+# Claude Code local settings
+.claude/
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Keystore (絕對不能上傳)
+*.jks
+*.keystore
+
+# ProGuard mapping (若需保留 crash stack 才需 commit，否則排除)
+/app/mapping.txt
+
+# Navigation args generated files
+app/src/main/java/**/NavigationArgs.kt
+
+# Kotlin / Java build cache
+.kotlin/
+out/

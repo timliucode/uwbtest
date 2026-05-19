@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!--
+        UWB_RANGING：執行期權限（Android 12 / API 31+），使用前必須動態申請。
+        此 App 的 minSdk = 31，所以所有裝置都需要此權限。
+    -->
+    <uses-permission android:name="android.permission.UWB_RANGING" />
+
+    <!--
+        android:required="false" → 讓 App 可安裝到沒有 UWB 硬體的裝置。
+        CapabilityCheckScreen 會在執行期自行判斷硬體是否存在。
+    -->
+    <uses-feature
+        android:name="android.hardware.uwb"
+        android:required="false" />
+
+    <application
+        android:name=".UwbApp"
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.Uwbtest">
+
+        <activity
+            android:name=".presentation.MainActivity"
+            android:exported="true"
+            android:theme="@style/Theme.Uwbtest">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+    </application>
+
+</manifest>
