@@ -240,6 +240,12 @@ fun OobExchangeScreen(
 
             // ── Session Key ─────────────────────────────────────
             Text("Session Key（兩端必須相同）", style = MaterialTheme.typography.titleSmall)
+            Text(
+                if (viewModel.isController) "已隨機生成，將包含在 QR Code 中自動傳遞給對方"
+                else "掃描 Controller 的 QR Code 後自動填入，可手動覆蓋",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
             OutlinedTextField(
                 value = uiState.sessionKeyHex,
                 onValueChange = viewModel::onSessionKeyChanged,
