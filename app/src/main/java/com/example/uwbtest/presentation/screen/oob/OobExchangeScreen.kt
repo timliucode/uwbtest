@@ -3,6 +3,7 @@ package com.example.uwbtest.presentation.screen.oob
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -12,10 +13,12 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ContentCopy
+import androidx.compose.material.icons.filled.QrCodeScanner
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -25,6 +28,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
@@ -38,6 +42,10 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.uwbtest.presentation.component.QrCodeImage
+import com.example.uwbtest.presentation.util.QrCodeUtils
+import com.journeyapps.barcodescanner.ScanContract
+import com.journeyapps.barcodescanner.ScanOptions
 
 /**
  * Screen 3：OOB（Out-of-Band）參數交換畫面。
@@ -60,6 +68,9 @@ fun OobExchangeScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
+    val scanLauncher = rememberLauncherForActivityResult(ScanContract()) { result ->
+        result.contents?.let { viewModel.onQrScanned(it) }
+    }
 
     Scaffold(
         topBar = {
@@ -149,6 +160,18 @@ fun OobExchangeScreen(
                         }
                     }
                 }
+
+                if (info != null) {
+                    QrCodeImage(
+                        content = QrCodeUtils.buildQrContent(
+                            addr = info.localAddressHex,
+                            ch = if (viewModel.isController) uiState.channelNumber.toIntOrNull() else null,
+                            pr = if (viewModel.isController) uiState.preambleIndex.toIntOrNull() else null,
+                            key = uiState.sessionKeyHex,
+                        ),
+                        modifier = Modifier.align(Alignment.CenterHorizontally),
+                    )
+                }
             }
 
             HorizontalDivider()
@@ -160,14 +183,38 @@ fun OobExchangeScreen(
                 onValueChange = viewModel::onPeerAddressChanged,
                 label = { Text("Peer UWB Address (hex, e.g. A1:B2)") },
                 isError = uiState.peerAddressError != null,
-                supportingText = uiState.peerAddressError?.let { { Text(it) } },
+                supportingText = if (uiState.peerAddressError != null) {
+                    { Text(uiState.peerAddressError!!) }
+                } else {
+                    { Text("輸入對端 UWB 地址，或掃描對方 QR Code 自動填入") }
+                },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
             )
+            OutlinedButton(
+                onClick = {
+                    scanLauncher.launch(
+                        ScanOptions().apply {
+                            setPrompt("掃描對方裝置的 QR Code")
+                            setOrientationLocked(false)
+                        }
+                    )
+                },
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Icon(Icons.Default.QrCodeScanner, contentDescription = null)
+                Spacer(Modifier.width(8.dp))
+                Text("掃描對方 QR Code / Scan QR")
+            }
 
             // ── Channel + Preamble（Controlee 手動填，Controller 自動填）
             if (!viewModel.isController) {
                 Text("信道參數 / Channel Parameters", style = MaterialTheme.typography.titleSmall)
+                Text(
+                    "從 Controller 的 My Address 卡片取得（例：CH:9 → 填 9，PR:11 → 填 11）",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
@@ -214,7 +261,7 @@ fun OobExchangeScreen(
                 Column {
                     Text("Reverse Peer Bytes", style = MaterialTheme.typography.bodyMedium)
                     Text(
-                        "Android 13 byte-order debug 工具（N9860）",
+                        "對端地址 byte-order 反轉（Android 13 debug 用）",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )

@@ -78,6 +78,9 @@ dependencies {
     // ── UWB 1.0.0 ─────────────────────────────────────────
     implementation(libs.androidx.uwb)
 
+    // ── QR Code（OOB 參數 QR 生成 + 掃描）──────────────────
+    implementation(libs.zxing.embedded)
+
     // Debug
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)

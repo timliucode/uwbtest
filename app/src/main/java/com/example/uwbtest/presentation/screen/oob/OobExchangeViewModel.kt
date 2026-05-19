@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.uwbtest.domain.model.OobParams
 import com.example.uwbtest.domain.model.UwbDeviceInfo
 import com.example.uwbtest.domain.usecase.GetLocalAddressUseCase
+import com.example.uwbtest.presentation.util.QrCodeUtils
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -102,6 +103,14 @@ class OobExchangeViewModel @Inject constructor(
 
     fun onReverseBytesChanged(value: Boolean) {
         _uiState.update { it.copy(reverseBytes = value) }
+    }
+
+    fun onQrScanned(raw: String) {
+        val map = QrCodeUtils.parseQrContent(raw) ?: return
+        map["addr"]?.let { onPeerAddressChanged(it) }
+        map["ch"]?.let { onChannelChanged(it) }
+        map["pr"]?.let { onPreambleChanged(it) }
+        map["key"]?.let { onSessionKeyChanged(it) }
     }
 
     /** 組裝 OobParams 並儲存到 SavedStateHandle（供 RangingViewModel 取用） */
