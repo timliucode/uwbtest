@@ -3,6 +3,20 @@ package com.example.uwbtest.domain.model
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 
+private fun sampleRangingCapabilities() = UwbRangingCapabilities(
+    isDistanceSupported                   = true,
+    isAzimuthalAngleSupported             = true,
+    isElevationAngleSupported             = false,
+    minRangingInterval                    = 200,
+    supportedChannels                     = setOf(5, 9),
+    supportedNtfConfigs                   = setOf(1),
+    supportedConfigIds                    = setOf(1),
+    supportedSlotDurations                = setOf(1),
+    supportedRangingUpdateRates           = setOf(1),
+    isRangingIntervalReconfigureSupported = true,
+    isBackgroundRangingSupported          = false,
+)
+
 class UwbCapabilityTest {
 
     @Test
@@ -58,5 +72,30 @@ class UwbCapabilityTest {
         val a = UwbCapability(hardwarePresent = true, isAvailable = true, isAndroid13OrLower = false)
         val b = UwbCapability(hardwarePresent = true, isAvailable = true, isAndroid13OrLower = false)
         assertThat(a).isEqualTo(b)
+    }
+
+    @Test
+    fun `rangingCapabilities - null by default`() {
+        val c = UwbCapability(hardwarePresent = true, isAvailable = true)
+        assertThat(c.rangingCapabilities).isNull()
+    }
+
+    @Test
+    fun `rangingCapabilities - stores provided value`() {
+        val caps = sampleRangingCapabilities()
+        val c = UwbCapability(hardwarePresent = true, isAvailable = true, rangingCapabilities = caps)
+        assertThat(c.rangingCapabilities).isEqualTo(caps)
+    }
+
+    @Test
+    fun `canProceed - not affected by rangingCapabilities presence`() {
+        val withCaps = UwbCapability(
+            hardwarePresent = true,
+            isAvailable = true,
+            rangingCapabilities = sampleRangingCapabilities(),
+        )
+        val withoutCaps = UwbCapability(hardwarePresent = true, isAvailable = true)
+        assertThat(withCaps.canProceed).isTrue()
+        assertThat(withoutCaps.canProceed).isTrue()
     }
 }

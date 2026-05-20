@@ -1,5 +1,6 @@
 package com.example.uwbtest.data.uwb
 
+import androidx.core.uwb.RangingCapabilities
 import androidx.core.uwb.UwbControleeSessionScope
 import androidx.core.uwb.UwbControllerSessionScope
 import androidx.core.uwb.UwbManager
@@ -31,6 +32,11 @@ class UwbManagerWrapper @Inject constructor(
      * @throws SecurityException             缺少 UWB_RANGING 權限時拋出
      */
     suspend fun isAvailable(): Boolean = uwbManager.isAvailable()
+
+    // RangingCapabilities is a property on UwbClientSessionScope (not on UwbManager directly).
+    // We create a temporary controlee scope solely to read it — prepareSession() is never called.
+    suspend fun getRangingCapabilities(): RangingCapabilities =
+        uwbManager.controleeSessionScope().rangingCapabilities
 
     /**
      * 建立 Controller session scope。

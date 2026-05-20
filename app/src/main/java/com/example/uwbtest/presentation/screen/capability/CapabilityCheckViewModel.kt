@@ -44,19 +44,47 @@ class CapabilityCheckViewModel @Inject constructor(
         val oneUiVersion: String?,
         val buildDisplay: String,
     ) {
-        /** 格式化為多行文字，方便複製分享（uwbStatus 由呼叫端補入） */
-        fun toClipboardText(uwbHardware: String = "—", uwbAvailable: String = "—"): String =
-            buildString {
-                appendLine("=== Device Info ===")
+        /**
+         * 格式化為多行文字，方便複製分享。
+         * 傳入 [capability] 後會自動附加 UWB 狀態與 Ranging Capabilities 區段；
+         * 傳入 null（預設）則只輸出裝置基本資訊。
+         */
+        fun toClipboardText(capability: UwbCapability? = null): String {
+            fun Boolean.toText() = if (this) "Supported" else "Not supported"
+            return buildString {
+                appendLine("=== UWB Capability Report ===")
                 appendLine("Manufacturer : $manufacturer")
                 appendLine("Model        : $model")
                 appendLine("Android      : $androidVersion (API $sdkLevel)")
                 if (oneUiVersion != null) appendLine("OneUI        : $oneUiVersion")
                 appendLine("Build        : $buildDisplay")
-                appendLine("UWB Hardware : $uwbHardware")
-                appendLine("UWB Available: $uwbAvailable")
-                append("===================")
+
+                if (capability != null) {
+                    appendLine()
+                    appendLine("[UWB Status]")
+                    appendLine("Hardware  : ${if (capability.hardwarePresent) "Present" else "Not found"}")
+                    appendLine("Available : ${if (capability.isAvailable) "Yes" else "No"}")
+                }
+
+                capability?.rangingCapabilities?.let { caps ->
+                    appendLine()
+                    appendLine("[Ranging Capabilities]")
+                    appendLine("Distance Ranging      : ${caps.isDistanceSupported.toText()}")
+                    appendLine("Azimuthal Angle (AoA) : ${caps.isAzimuthalAngleSupported.toText()}")
+                    appendLine("Elevation Angle (3D)  : ${caps.isElevationAngleSupported.toText()}")
+                    appendLine("Background Ranging    : ${caps.isBackgroundRangingSupported.toText()}")
+                    appendLine("Interval Reconfigure  : ${caps.isRangingIntervalReconfigureSupported.toText()}")
+                    appendLine("Min Ranging Interval  : ${caps.minRangingInterval} ms")
+                    appendLine("Channels              : ${caps.supportedChannels.sorted().joinToString(", ").ifEmpty { "—" }}")
+                    appendLine("Config IDs            : ${caps.supportedConfigIds.sorted().joinToString(", ").ifEmpty { "—" }}")
+                    appendLine("NTF Configs           : ${caps.supportedNtfConfigs.sorted().joinToString(", ").ifEmpty { "—" }}")
+                    appendLine("Slot Durations        : ${caps.supportedSlotDurations.sorted().joinToString(", ").ifEmpty { "—" }}")
+                    appendLine("Update Rates          : ${caps.supportedRangingUpdateRates.sorted().joinToString(", ").ifEmpty { "—" }}")
+                }
+
+                append("=============================")
             }
+        }
     }
 
     /** 進入畫面即可讀取，不需等待 UWB 檢查 */
