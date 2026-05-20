@@ -11,6 +11,7 @@ hilt = "2.56.2"
 hiltNavigationCompose = "1.2.0"
 coroutines = "1.9.0"
 uwb = "1.0.0"
+zxing-embedded = "4.3.0"
 junit4            = "4.13.2"
 mockitoKotlin     = "5.4.0"
 turbine           = "1.2.0"
@@ -54,6 +55,9 @@ kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-
 
 # UWB ← 主角
 androidx-uwb = { group = "androidx.core.uwb", name = "uwb", version.ref = "uwb" }
+
+# QR Code（OOB 參數交換用）
+zxing-embedded = { group = "com.journeyapps", name = "zxing-android-embedded", version.ref = "zxing-embedded" }
 
 # Test
 junit4                  = { group = "junit", name = "junit", version.ref = "junit4" }

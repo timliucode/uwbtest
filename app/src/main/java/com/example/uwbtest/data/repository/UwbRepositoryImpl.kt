@@ -16,6 +16,7 @@ import com.example.uwbtest.domain.model.OobParams
 import com.example.uwbtest.domain.model.RangingState
 import com.example.uwbtest.domain.model.UwbCapability
 import com.example.uwbtest.domain.model.UwbDeviceInfo
+import com.example.uwbtest.domain.model.UwbRangingCapabilities
 import com.example.uwbtest.domain.model.UwbRole
 import com.example.uwbtest.domain.repository.UwbRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -111,11 +112,34 @@ class UwbRepositoryImpl @Inject constructor(
             )
         }
 
+        val rangingCapabilities: UwbRangingCapabilities? = if (isAvailable) {
+            try {
+                val raw = wrapper.getRangingCapabilities()
+                UwbRangingCapabilities(
+                    isDistanceSupported                   = raw.isDistanceSupported,
+                    isAzimuthalAngleSupported             = raw.isAzimuthalAngleSupported,
+                    isElevationAngleSupported             = raw.isElevationAngleSupported,
+                    minRangingInterval                    = raw.minRangingInterval,
+                    supportedChannels                     = raw.supportedChannels,
+                    supportedNtfConfigs                   = raw.supportedNtfConfigs,
+                    supportedConfigIds                    = raw.supportedConfigIds,
+                    supportedSlotDurations                = raw.supportedSlotDurations,
+                    supportedRangingUpdateRates           = raw.supportedRangingUpdateRates,
+                    isRangingIntervalReconfigureSupported = raw.isRangingIntervalReconfigureSupported,
+                    isBackgroundRangingSupported          = raw.isBackgroundRangingSupported,
+                )
+            } catch (e: Exception) {
+                Log.w(TAG, "checkCapability: getRangingCapabilities failed, skipping", e)
+                null
+            }
+        } else null
+
         return UwbCapability(
             hardwarePresent = true,
             isAvailable = isAvailable,
             unavailableReason = reason,
             isAndroid13OrLower = isAndroid13OrLower,
+            rangingCapabilities = rangingCapabilities,
         )
     }
 

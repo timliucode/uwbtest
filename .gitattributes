@@ -1,0 +1,23 @@
+# ── GitHub Linguist overrides ──────────────────────────────────────────
+*.kt    linguist-language=Kotlin
+*.kts   linguist-language=Kotlin linguist-detectable=true
+gradlew linguist-vendored=true
+app/src/main/res/** linguist-generated=true
+
+# ── Line endings ───────────────────────────────────────────────────────
+* text=auto eol=lf
+gradlew  text eol=lf
+*.bat    text eol=crlf
+
+# ── Binary files ───────────────────────────────────────────────────────
+*.png      binary
+*.jpg      binary
+*.jpeg     binary
+*.gif      binary
+*.ico      binary
+*.jks      binary
+*.keystore binary
+*.apk      binary
+*.aab      binary
+*.jar      binary
+*.zip      binary

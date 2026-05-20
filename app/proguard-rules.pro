@@ -5,3 +5,7 @@
 -keep class dagger.hilt.** { *; }
 -keep @dagger.hilt.android.HiltAndroidApp class * { *; }
 -keep @dagger.hilt.android.AndroidEntryPoint class * { *; }
+
+# ZXing — QR Code 生成 / 掃描（反射 & Activity entry point）
+-keep class com.google.zxing.** { *; }
+-keep class com.journeyapps.barcodescanner.** { *; }

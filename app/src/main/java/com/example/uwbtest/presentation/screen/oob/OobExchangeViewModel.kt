@@ -6,12 +6,14 @@ import androidx.lifecycle.viewModelScope
 import com.example.uwbtest.domain.model.OobParams
 import com.example.uwbtest.domain.model.UwbDeviceInfo
 import com.example.uwbtest.domain.usecase.GetLocalAddressUseCase
+import com.example.uwbtest.presentation.util.QrCodeUtils
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.security.SecureRandom
 import javax.inject.Inject
 
 /**
@@ -41,7 +43,7 @@ class OobExchangeViewModel @Inject constructor(
         val peerAddressHex: String = "",
         val channelNumber: String = "9",      // Controller 預設值
         val preambleIndex: String = "10",     // Controller 預設值
-        val sessionKeyHex: String = "0102030405060708",
+        val sessionKeyHex: String = "",       // Controller 側 init 時隨機生成；Controlee 側由 QR 掃描填入
         val reverseBytes: Boolean = false,
 
         // 驗證結果
@@ -62,6 +64,9 @@ class OobExchangeViewModel @Inject constructor(
     val uiState: StateFlow<UiState> = _uiState.asStateFlow()
 
     init {
+        if (isController) {
+            _uiState.update { it.copy(sessionKeyHex = generateRandomSessionKey()) }
+        }
         loadLocalAddress()
     }
 
@@ -104,6 +109,14 @@ class OobExchangeViewModel @Inject constructor(
         _uiState.update { it.copy(reverseBytes = value) }
     }
 
+    fun onQrScanned(raw: String) {
+        val map = QrCodeUtils.parseQrContent(raw) ?: return
+        map["addr"]?.let { onPeerAddressChanged(it) }
+        map["ch"]?.let { onChannelChanged(it) }
+        map["pr"]?.let { onPreambleChanged(it) }
+        map["key"]?.let { onSessionKeyChanged(it) }
+    }
+
     /** 組裝 OobParams 並儲存到 SavedStateHandle（供 RangingViewModel 取用） */
     fun buildOobParams(): OobParams {
         val state = _uiState.value
@@ -121,6 +134,12 @@ class OobExchangeViewModel @Inject constructor(
     }
 
     // ── Private ────────────────────────────────────────────────
+
+    private fun generateRandomSessionKey(): String {
+        val bytes = ByteArray(8)
+        SecureRandom().nextBytes(bytes)
+        return bytes.joinToString("") { "%02X".format(it) }
+    }
 
     private fun loadLocalAddress() {
         viewModelScope.launch {

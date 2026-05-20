@@ -61,6 +61,8 @@ fun RoleSelectScreen(
             Text(
                 text = "選擇此裝置在 UWB Ranging 中扮演的角色。\nSelect the role for this device.",
                 style = MaterialTheme.typography.bodyMedium,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth(),
             )
 
             Spacer(modifier = Modifier.height(16.dp))
