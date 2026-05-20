@@ -34,13 +34,17 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true          // R8：dead code 移除 + obfuscate
+            isShrinkResources = true        // 移除未使用資源（需搭配 minify）
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            if (System.getenv("KEYSTORE_BASE64") != null) {
-                signingConfig = signingConfigs.getByName("release")
+            // CI 有 KEYSTORE_BASE64 → 正式簽名；本機 → fallback 到 debug keystore
+            signingConfig = if (System.getenv("KEYSTORE_BASE64") != null) {
+                signingConfigs.getByName("release")
+            } else {
+                signingConfigs.getByName("debug")
             }
         }
     }
