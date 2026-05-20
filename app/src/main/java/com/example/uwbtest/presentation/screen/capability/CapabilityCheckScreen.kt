@@ -87,7 +87,7 @@ fun CapabilityCheckScreen(
                 color = MaterialTheme.colorScheme.primary,
             )
 
-            // ── 裝置資訊卡 ───────────────────────────────────────
+            // ── 裝置資訊 + UWB 狀態 + Ranging Capabilities（合一卡）──
             val info = viewModel.deviceInfo
             val capability = (uiState as? CapabilityCheckViewModel.UiState.Success)?.capability
 
@@ -95,16 +95,12 @@ fun CapabilityCheckScreen(
                 info = info,
                 capability = capability,
                 onCopy = {
-                    val hw = if (capability?.hardwarePresent == true) "Present" else if (capability == null) "—" else "Not found"
-                    val av = if (capability?.isAvailable == true) "Yes" else if (capability == null) "—" else "No"
                     context.copyToClipboard(
-                        "Device Info",
-                        info.toClipboardText(uwbHardware = hw, uwbAvailable = av),
+                        "UWB Capability Report",
+                        info.toClipboardText(capability),
                     )
                 },
             )
-
-            HorizontalDivider()
 
             // ── UWB 能力狀態 ──────────────────────────────────────
             when (val state = uiState) {
@@ -218,7 +214,7 @@ fun CapabilityCheckScreen(
     }
 }
 
-// ── 裝置資訊卡 ─────────────────────────────────────────────────
+// ── 裝置資訊 + UWB 狀態 + Ranging Capabilities 合一卡 ──────────
 
 @Composable
 private fun DeviceInfoCard(
@@ -233,6 +229,8 @@ private fun DeviceInfoCard(
         modifier = Modifier.fillMaxWidth(),
     ) {
         Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+
+            // ── 卡片標題列 ────────────────────────────────────────
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -242,12 +240,13 @@ private fun DeviceInfoCard(
                 IconButton(onClick = onCopy, modifier = Modifier.size(32.dp)) {
                     Icon(
                         Icons.Default.ContentCopy,
-                        contentDescription = "複製裝置資訊",
+                        contentDescription = "複製完整報告",
                         modifier = Modifier.size(18.dp),
                     )
                 }
             }
 
+            // ── 裝置基本資訊 ──────────────────────────────────────
             InfoRow("Manufacturer", info.manufacturer)
             InfoRow("Model", info.model)
             InfoRow("Android", "${info.androidVersion}  (API ${info.sdkLevel})")
@@ -256,22 +255,55 @@ private fun DeviceInfoCard(
             }
             InfoRow("Build", info.buildDisplay)
 
-            // UWB 狀態列（檢查完成後才顯示）
+            // ── UWB 狀態（檢查完成後才顯示）─────────────────────
             if (capability != null) {
                 HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
+                SectionLabel("UWB 狀態 / Status")
                 InfoRow(
-                    label = "UWB Hardware",
+                    label = "Hardware",
                     value = if (capability.hardwarePresent) "Present ✓" else "Not found ✗",
                     valueColor = if (capability.hardwarePresent) Color(0xFF4CAF50) else Color(0xFFF44336),
                 )
                 InfoRow(
-                    label = "UWB Available",
+                    label = "Available",
                     value = if (capability.isAvailable) "Yes ✓" else "No ✗",
                     valueColor = if (capability.isAvailable) Color(0xFF4CAF50) else Color(0xFFF44336),
                 )
             }
+
+            // ── Ranging Capabilities（isAvailable == true 時才有）
+            capability?.rangingCapabilities?.let { caps ->
+                fun Boolean.toSupportText() = if (this) "Supported ✓" else "Not supported ✗"
+
+                HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
+                SectionLabel("Ranging Capabilities")
+
+                InfoRow("Distance Ranging", caps.isDistanceSupported.toSupportText())
+                InfoRow("Azimuthal Angle (AoA)", caps.isAzimuthalAngleSupported.toSupportText())
+                InfoRow("Elevation Angle (3D)", caps.isElevationAngleSupported.toSupportText())
+                InfoRow("Background Ranging", caps.isBackgroundRangingSupported.toSupportText())
+                InfoRow("Interval Reconfigure", caps.isRangingIntervalReconfigureSupported.toSupportText())
+
+                HorizontalDivider(modifier = Modifier.padding(vertical = 2.dp))
+
+                InfoRow("Min Ranging Interval", "${caps.minRangingInterval} ms")
+                InfoRow("Channels", caps.supportedChannels.sorted().joinToString(", ").ifEmpty { "—" })
+                InfoRow("Config IDs", caps.supportedConfigIds.sorted().joinToString(", ").ifEmpty { "—" })
+                InfoRow("NTF Configs", caps.supportedNtfConfigs.sorted().joinToString(", ").ifEmpty { "—" })
+                InfoRow("Slot Durations", caps.supportedSlotDurations.sorted().joinToString(", ").ifEmpty { "—" })
+                InfoRow("Update Rates", caps.supportedRangingUpdateRates.sorted().joinToString(", ").ifEmpty { "—" })
+            }
         }
     }
+}
+
+@Composable
+private fun SectionLabel(text: String) {
+    Text(
+        text,
+        style = MaterialTheme.typography.labelSmall,
+        color = MaterialTheme.colorScheme.primary,
+    )
 }
 
 @Composable

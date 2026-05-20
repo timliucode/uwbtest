@@ -16,6 +16,7 @@ data class UwbCapability(
     val isAvailable: Boolean,
     val unavailableReason: String? = null,
     val isAndroid13OrLower: Boolean = false,
+    val rangingCapabilities: UwbRangingCapabilities? = null,
 ) {
     /** 兩層檢查都通過，才能繼續進行 ranging */
     val canProceed: Boolean get() = hardwarePresent && isAvailable
