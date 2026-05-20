@@ -127,7 +127,7 @@ fun CapabilityCheckScreen(
                     // 此處只補充「不可用時的原因說明」
                     if (!state.capability.isAvailable && state.capability.unavailableReason != null) {
                         Card(
-                            colors = CardDefaults.cardColors(containerColor = Color(0xFFFFEBEE)),
+                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer),
                             modifier = Modifier.fillMaxWidth(),
                         ) {
                             Row(
@@ -135,10 +135,11 @@ fun CapabilityCheckScreen(
                                 horizontalArrangement = Arrangement.spacedBy(12.dp),
                                 verticalAlignment = Alignment.Top,
                             ) {
-                                Icon(Icons.Default.Error, null, tint = Color(0xFFF44336))
+                                Icon(Icons.Default.Error, null, tint = MaterialTheme.colorScheme.error)
                                 Text(
                                     text = state.capability.unavailableReason,
                                     style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onErrorContainer,
                                 )
                             }
                         }
@@ -147,7 +148,7 @@ fun CapabilityCheckScreen(
                     // Android 13 byte-order 提示
                     if (state.capability.isAndroid13OrLower && state.capability.isAvailable) {
                         Card(
-                            colors = CardDefaults.cardColors(containerColor = Color(0xFFFFF3E0)),
+                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.tertiaryContainer),
                             modifier = Modifier.fillMaxWidth(),
                         ) {
                             Row(
@@ -155,13 +156,14 @@ fun CapabilityCheckScreen(
                                 horizontalArrangement = Arrangement.spacedBy(12.dp),
                                 verticalAlignment = Alignment.Top,
                             ) {
-                                Icon(Icons.Default.Warning, null, tint = Color(0xFFFF9800))
+                                Icon(Icons.Default.Warning, null, tint = MaterialTheme.colorScheme.tertiary)
                                 Text(
                                     text = "💡 Android 13 偵測到\n" +
                                         "此 OS 版本存在 UWB 地址 byte-order 已知問題。\n" +
                                         "若 ranging 無法建立，請在下一步開啟「Reverse Bytes」開關。\n\n" +
                                         "Android 13 detected. If ranging fails, try toggling 'Reverse Bytes' on the OOB screen.",
                                     style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onTertiaryContainer,
                                 )
                             }
                         }
@@ -188,7 +190,7 @@ fun CapabilityCheckScreen(
 
                 is CapabilityCheckViewModel.UiState.Error -> {
                     Card(
-                        colors = CardDefaults.cardColors(containerColor = Color(0xFFFFEBEE)),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer),
                         modifier = Modifier.fillMaxWidth(),
                     ) {
                         Row(
@@ -196,8 +198,12 @@ fun CapabilityCheckScreen(
                             horizontalArrangement = Arrangement.spacedBy(12.dp),
                             verticalAlignment = Alignment.Top,
                         ) {
-                            Icon(Icons.Default.Error, null, tint = Color(0xFFF44336))
-                            Text(state.message, style = MaterialTheme.typography.bodySmall)
+                            Icon(Icons.Default.Error, null, tint = MaterialTheme.colorScheme.error)
+                            Text(
+                                state.message,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onErrorContainer,
+                            )
                         }
                     }
 
@@ -262,12 +268,12 @@ private fun DeviceInfoCard(
                 InfoRow(
                     label = "Hardware",
                     value = if (capability.hardwarePresent) "Present ✓" else "Not found ✗",
-                    valueColor = if (capability.hardwarePresent) Color(0xFF4CAF50) else Color(0xFFF44336),
+                    valueColor = if (capability.hardwarePresent) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error,
                 )
                 InfoRow(
                     label = "Available",
                     value = if (capability.isAvailable) "Yes ✓" else "No ✗",
-                    valueColor = if (capability.isAvailable) Color(0xFF4CAF50) else Color(0xFFF44336),
+                    valueColor = if (capability.isAvailable) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error,
                 )
             }
 
