@@ -50,6 +50,10 @@ class UwbRangingService : LifecycleService() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         super.onStartCommand(intent, flags, startId)
 
+        // Always satisfy the ANR timer immediately — Android requires startForeground() within
+        // 5 seconds of startForegroundService(), regardless of what the intent asks us to do.
+        startForeground(NOTIFICATION_ID, buildNotification(null))
+
         if (intent?.action == ACTION_STOP) {
             stopRanging()
             return START_NOT_STICKY
@@ -59,7 +63,6 @@ class UwbRangingService : LifecycleService() {
         rangingJob?.cancel()
         releaseWakeLock()
 
-        startForeground(NOTIFICATION_ID, buildNotification(null))
         bridge.setRunning(true)
         acquireWakeLock()
 

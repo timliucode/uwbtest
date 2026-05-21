@@ -16,6 +16,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -29,6 +30,7 @@ import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import com.example.uwbtest.presentation.screen.isExpandedLayout
@@ -58,11 +60,36 @@ import java.util.Locale
 @Composable
 fun RangingScreen(
     onStop: () -> Unit,
+    onSessionExpired: () -> Unit,
     viewModel: RangingViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val listState = rememberLazyListState()
     val isExpanded = isExpandedLayout()
+    var showSessionExpiredDialog by remember { mutableStateOf(false) }
+
+    LaunchedEffect(Unit) {
+        viewModel.sessionExpiredEvent.collect { showSessionExpiredDialog = true }
+    }
+
+    if (showSessionExpiredDialog) {
+        AlertDialog(
+            onDismissRequest = { showSessionExpiredDialog = false },
+            title = { Text(stringResource(R.string.ranging_session_expired_title)) },
+            text  = { Text(stringResource(R.string.ranging_session_expired_message)) },
+            confirmButton = {
+                TextButton(onClick = {
+                    showSessionExpiredDialog = false
+                    onSessionExpired()
+                }) { Text(stringResource(R.string.ranging_session_expired_confirm)) }
+            },
+            dismissButton = {
+                TextButton(onClick = { showSessionExpiredDialog = false }) {
+                    Text(stringResource(R.string.ranging_session_expired_dismiss))
+                }
+            },
+        )
+    }
 
     LaunchedEffect(uiState.history.size) {
         if (uiState.history.isNotEmpty()) {
