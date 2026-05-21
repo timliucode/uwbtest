@@ -130,6 +130,12 @@
     <string name="log_filter_warn">W+</string>
     <string name="log_filter_error">E</string>
 
+    <!-- Ranging screen — session expired dialog -->
+    <string name="ranging_session_expired_title">UWB 工作階段已結束</string>
+    <string name="ranging_session_expired_message">UWB 測距工作階段已結束，請返回 OOB 交換步驟以建立新的連線。</string>
+    <string name="ranging_session_expired_confirm">重新交換 OOB</string>
+    <string name="ranging_session_expired_dismiss">停留</string>
+
     <!-- Ranging screen — mode selector -->
     <string name="ranging_run_in_background">移至背景執行</string>
     <string name="ranging_mode_label">測距模式</string>
