@@ -2,6 +2,7 @@ package com.example.uwbtest.presentation.screen.capability
 
 import app.cash.turbine.test
 import com.example.uwbtest.domain.model.UwbCapability
+import com.example.uwbtest.domain.model.UwbCapabilityStore
 import com.example.uwbtest.domain.usecase.CheckUwbCapabilityUseCase
 import com.example.uwbtest.util.MainDispatcherExtension
 import com.google.common.truth.Truth.assertThat
@@ -19,12 +20,14 @@ class CapabilityCheckViewModelTest {
     val mainDispatcherRule = MainDispatcherExtension()
 
     private lateinit var checkCapability: CheckUwbCapabilityUseCase
+    private lateinit var capabilityStore: UwbCapabilityStore
     private lateinit var viewModel: CapabilityCheckViewModel
 
     @BeforeEach
     fun setUp() {
         checkCapability = mock()
-        viewModel = CapabilityCheckViewModel(checkCapability)
+        capabilityStore = UwbCapabilityStore()
+        viewModel = CapabilityCheckViewModel(checkCapability, capabilityStore)
     }
 
     @Test
@@ -80,6 +83,16 @@ class CapabilityCheckViewModelTest {
         val state = viewModel.uiState.value
         assertThat(state).isInstanceOf(CapabilityCheckViewModel.UiState.Error::class.java)
         assertThat((state as CapabilityCheckViewModel.UiState.Error).message).isEqualTo("Unknown error")
+    }
+
+    @Test
+    fun `check - success writes capability to store`() = runTest {
+        val capability = UwbCapability(hardwarePresent = true, isAvailable = true)
+        whenever(checkCapability()).thenReturn(capability)
+
+        viewModel.check()
+
+        assertThat(capabilityStore.lastCapability).isEqualTo(capability)
     }
 
     @Test

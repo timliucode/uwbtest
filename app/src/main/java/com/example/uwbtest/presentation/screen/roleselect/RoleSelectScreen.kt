@@ -84,6 +84,7 @@ fun RoleSelectScreen(
             Spacer(modifier = Modifier.weight(1f))
 
             Card(
+                modifier = Modifier.fillMaxWidth(),
                 colors = CardDefaults.cardColors(
                     containerColor = MaterialTheme.colorScheme.primaryContainer,
                 ),
@@ -113,7 +114,9 @@ private fun RoleCard(
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
     ) {
         Column(
-            modifier = Modifier.padding(16.dp),
+            modifier = Modifier
+                .padding(16.dp)
+                .fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
@@ -123,7 +126,7 @@ private fun RoleCard(
                 modifier = Modifier.size(48.dp),
                 tint = MaterialTheme.colorScheme.primary,
             )
-            Text(role, style = MaterialTheme.typography.titleMedium)
+            Text(role, style = MaterialTheme.typography.titleMedium, textAlign = TextAlign.Center)
             Text(
                 description,
                 style = MaterialTheme.typography.bodySmall,

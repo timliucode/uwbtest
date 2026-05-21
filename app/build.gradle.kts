@@ -20,6 +20,10 @@ android {
         versionName = ciVersionName
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        // Strip locale resources from all dependencies — keeps only en + zh-Hant-TW
+        // so the per-app language picker shows exactly those two languages.
+        resourceConfigurations += setOf("en", "b+zh+Hant+TW")
     }
 
     signingConfigs {

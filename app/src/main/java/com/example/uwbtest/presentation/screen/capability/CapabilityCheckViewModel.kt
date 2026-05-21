@@ -4,6 +4,7 @@ import android.os.Build
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.uwbtest.domain.model.UwbCapability
+import com.example.uwbtest.domain.model.UwbCapabilityStore
 import com.example.uwbtest.domain.usecase.CheckUwbCapabilityUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -21,6 +22,7 @@ import javax.inject.Inject
 @HiltViewModel
 class CapabilityCheckViewModel @Inject constructor(
     private val checkCapability: CheckUwbCapabilityUseCase,
+    private val capabilityStore: UwbCapabilityStore,
 ) : ViewModel() {
 
     // ── 裝置資訊（靜態，畫面載入即可用）────────────────────────
@@ -109,6 +111,7 @@ class CapabilityCheckViewModel @Inject constructor(
             _uiState.value = UiState.Loading
             try {
                 val capability = checkCapability()
+                capabilityStore.lastCapability = capability
                 _uiState.value = UiState.Success(capability)
             } catch (e: Exception) {
                 _uiState.value = UiState.Error(e.message ?: "Unknown error")

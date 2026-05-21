@@ -134,7 +134,10 @@ class UwbRangingService : LifecycleService() {
         val openAppPendingIntent = PendingIntent.getActivity(
             this,
             0,
-            Intent(this, MainActivity::class.java),
+            Intent(this, MainActivity::class.java).apply {
+                putExtra(MainActivity.EXTRA_NAVIGATE_TO, MainActivity.ROUTE_RANGING)
+                flags = Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP
+            },
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
         val contentText = when (state) {
