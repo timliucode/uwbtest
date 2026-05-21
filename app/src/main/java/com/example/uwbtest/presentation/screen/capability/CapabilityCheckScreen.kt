@@ -44,7 +44,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.window.core.layout.WindowWidthSizeClass
 import com.example.uwbtest.R
 import com.example.uwbtest.domain.model.UwbCapability
 import com.example.uwbtest.presentation.component.PermissionHandler
@@ -59,8 +58,7 @@ fun CapabilityCheckScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
-    val isExpanded = currentWindowAdaptiveInfo().windowSizeClass.windowWidthSizeClass ==
-            WindowWidthSizeClass.EXPANDED
+    val isExpanded = currentWindowAdaptiveInfo().windowSizeClass.isWidthAtLeastBreakpoint(840)
 
     PermissionHandler(
         onGranted = { viewModel.check() },

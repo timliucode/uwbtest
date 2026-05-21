@@ -97,6 +97,7 @@
     <string name="ranging_azimuth">方位角</string>
     <string name="ranging_elevation">仰角</string>
     <string name="ranging_aoa_na">無 AoA</string>
+    <string name="ranging_3d_view_title">3D 位置視圖</string>
     <string name="ranging_history_title">歷史記錄</string>
     <string name="ranging_history_count">%1$d / 50</string>
 

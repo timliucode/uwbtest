@@ -97,6 +97,7 @@
     <string name="ranging_azimuth">Azimuth</string>
     <string name="ranging_elevation">Elevation</string>
     <string name="ranging_aoa_na">AoA N/A</string>
+    <string name="ranging_3d_view_title">3D Position View</string>
     <string name="ranging_history_title">History</string>
     <string name="ranging_history_count">%1$d / 50</string>
 
