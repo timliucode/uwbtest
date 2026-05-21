@@ -119,9 +119,15 @@
     <string name="log_refresh">重新整理</string>
     <string name="log_clear">清除</string>
     <string name="log_share">分享</string>
+    <string name="log_share_subject">UWB Tester 記錄</string>
     <string name="log_capture_logcat">擷取 Logcat</string>
     <string name="log_logcat_section">Logcat 輸出</string>
     <string name="capability_logs_action">查看記錄</string>
+    <string name="log_filter_all">ALL</string>
+    <string name="log_filter_debug">D+</string>
+    <string name="log_filter_info">I+</string>
+    <string name="log_filter_warn">W+</string>
+    <string name="log_filter_error">E</string>
 
     <!-- Ranging screen — background toggle -->
     <string name="ranging_run_in_background">移至背景執行</string>

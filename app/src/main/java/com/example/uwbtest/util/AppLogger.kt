@@ -3,10 +3,13 @@ package com.example.uwbtest.util
 import android.os.Process
 import android.util.Log
 import com.example.uwbtest.domain.model.LogEntry
-import java.text.SimpleDateFormat
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 import java.util.ArrayDeque
-import java.util.Date
-import java.util.Locale
+import java.util.concurrent.TimeUnit
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 /**
  * In-process log buffer that wraps [android.util.Log].
@@ -21,7 +24,9 @@ object AppLogger {
     private val buffer: ArrayDeque<LogEntry> = ArrayDeque(MAX_ENTRIES + 1)
     private val lock = Any()
 
-    private val timestampFormat = SimpleDateFormat("HH:mm:ss.SSS", Locale.getDefault())
+    // DateTimeFormatter is immutable and thread-safe (unlike SimpleDateFormat).
+    private val timestampFormatter: DateTimeFormatter =
+        DateTimeFormatter.ofPattern("HH:mm:ss.SSS")
 
     fun v(tag: String, message: String) = log(Log.VERBOSE, tag, message)
     fun d(tag: String, message: String) = log(Log.DEBUG, tag, message)
@@ -40,7 +45,9 @@ object AppLogger {
         appendLine()
         getEntries().forEach { entry ->
             val level = levelChar(entry.level)
-            val time = timestampFormat.format(Date(entry.timestampMs))
+            val time = Instant.ofEpochMilli(entry.timestampMs)
+                .atZone(ZoneId.systemDefault())
+                .format(timestampFormatter)
             appendLine("$time $level/${entry.tag}: ${entry.message}")
             entry.throwable?.let { appendLine("  ${it.stackTraceToString()}") }
         }
@@ -49,15 +56,21 @@ object AppLogger {
 
     /**
      * Captures recent logcat output for this process.
-     * Must be called on a background thread — not on the main thread.
+     * Safe to call from any coroutine context — internally dispatches to [Dispatchers.IO].
      */
-    suspend fun captureLogcat(): String = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+    suspend fun captureLogcat(): String = withContext(Dispatchers.IO) {
         try {
             val pid = Process.myPid().toString()
             val process = ProcessBuilder("logcat", "-d", "-t", "300", "--pid", pid)
                 .redirectErrorStream(true)
                 .start()
-            process.inputStream.bufferedReader().readText()
+            try {
+                process.inputStream.bufferedReader().use { it.readText() }.also {
+                    process.waitFor(10, TimeUnit.SECONDS)
+                }
+            } finally {
+                process.destroy()
+            }
         } catch (e: Exception) {
             "Failed to capture logcat: ${e.message}"
         }

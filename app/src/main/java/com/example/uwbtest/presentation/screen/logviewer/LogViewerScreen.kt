@@ -14,6 +14,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.BugReport
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Refresh
@@ -21,8 +22,6 @@ import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
@@ -35,9 +34,6 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -49,9 +45,9 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.uwbtest.R
 import com.example.uwbtest.domain.model.LogEntry
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -62,7 +58,7 @@ fun LogViewerScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val listState = rememberLazyListState()
-    var showFilterMenu by remember { mutableStateOf(false) }
+    val shareSubject = stringResource(R.string.log_share_subject)
 
     LaunchedEffect(uiState.filtered.size) {
         if (uiState.filtered.isNotEmpty()) {
@@ -74,6 +70,11 @@ fun LogViewerScreen(
         topBar = {
             TopAppBar(
                 title = { Text(stringResource(R.string.log_viewer_title)) },
+                navigationIcon = {
+                    IconButton(onClick = onBack) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null)
+                    }
+                },
                 actions = {
                     if (uiState.isCapturingLogcat) {
                         CircularProgressIndicator(modifier = Modifier.padding(12.dp))
@@ -91,7 +92,7 @@ fun LogViewerScreen(
                     IconButton(onClick = {
                         val shareIntent = Intent(Intent.ACTION_SEND).apply {
                             type = "text/plain"
-                            putExtra(Intent.EXTRA_SUBJECT, "UWB Tester Logs")
+                            putExtra(Intent.EXTRA_SUBJECT, shareSubject)
                             putExtra(Intent.EXTRA_TEXT, viewModel.getShareText())
                         }
                         context.startActivity(Intent.createChooser(shareIntent, null))
@@ -129,7 +130,7 @@ fun LogViewerScreen(
                     FilterChip(
                         selected = uiState.filter == filter,
                         onClick = { viewModel.onFilterChanged(filter) },
-                        label = { Text(filter.labelKey, style = MaterialTheme.typography.labelSmall) },
+                        label = { Text(stringResource(filter.labelRes), style = MaterialTheme.typography.labelSmall) },
                     )
                 }
                 Spacer(Modifier.weight(1f))
@@ -185,7 +186,7 @@ fun LogViewerScreen(
                         modifier = Modifier.padding(start = 8.dp, top = 8.dp),
                     )
                     Text(
-                        text = logcat.takeLast(3000), // show last 3000 chars
+                        text = logcat.takeLast(3000),
                         style = MaterialTheme.typography.labelSmall,
                         fontFamily = FontFamily.Monospace,
                         modifier = Modifier.padding(8.dp),
@@ -196,7 +197,8 @@ fun LogViewerScreen(
     }
 }
 
-private val timeFormat = SimpleDateFormat("HH:mm:ss.SSS", Locale.getDefault())
+// DateTimeFormatter is immutable and thread-safe (unlike SimpleDateFormat).
+private val timeFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("HH:mm:ss.SSS")
 
 private fun levelColor(level: Int): Color = when (level) {
     Log.VERBOSE -> Color(0xFF9E9E9E)
@@ -218,6 +220,9 @@ private fun levelChar(level: Int): String = when (level) {
 
 @Composable
 private fun LogEntryRow(entry: LogEntry) {
+    val time = Instant.ofEpochMilli(entry.timestampMs)
+        .atZone(ZoneId.systemDefault())
+        .format(timeFormatter)
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -225,7 +230,7 @@ private fun LogEntryRow(entry: LogEntry) {
         verticalAlignment = Alignment.Top,
     ) {
         Text(
-            text = timeFormat.format(Date(entry.timestampMs)),
+            text = time,
             style = MaterialTheme.typography.labelSmall,
             fontFamily = FontFamily.Monospace,
             color = MaterialTheme.colorScheme.onSurfaceVariant,

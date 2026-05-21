@@ -119,9 +119,15 @@
     <string name="log_refresh">Refresh</string>
     <string name="log_clear">Clear</string>
     <string name="log_share">Share</string>
+    <string name="log_share_subject">UWB Tester Logs</string>
     <string name="log_capture_logcat">Capture Logcat</string>
     <string name="log_logcat_section">Logcat Output</string>
     <string name="capability_logs_action">View Logs</string>
+    <string name="log_filter_all">ALL</string>
+    <string name="log_filter_debug">D+</string>
+    <string name="log_filter_info">I+</string>
+    <string name="log_filter_warn">W+</string>
+    <string name="log_filter_error">E</string>
 
     <!-- Ranging screen — background toggle -->
     <string name="ranging_run_in_background">Run in Background</string>
