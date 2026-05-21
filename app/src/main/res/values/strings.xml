@@ -100,6 +100,17 @@
     <string name="ranging_history_title">History</string>
     <string name="ranging_history_count">%1$d / 50</string>
 
+    <!-- About screen -->
+    <string name="about_title">About</string>
+    <string name="about_version">Version %1$s (%2$d)</string>
+    <string name="about_open_source">View on GitHub</string>
+    <string name="about_dependencies_title">Open Source Libraries</string>
+    <string name="about_licenses_title">Licenses</string>
+    <string name="about_apache2">Apache 2.0</string>
+    <string name="about_mit">MIT</string>
+    <string name="about_desc">A developer tool for testing UWB (Ultra-Wideband) ranging between two Android devices.</string>
+    <string name="about_menu_item">About</string>
+
     <!-- Log Viewer screen -->
     <string name="log_viewer_title">App Logs</string>
     <string name="log_search_hint">Search tag or message…</string>

@@ -6,6 +6,7 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import com.example.uwbtest.presentation.screen.about.AboutScreen
 import com.example.uwbtest.presentation.screen.capability.CapabilityCheckScreen
 import com.example.uwbtest.presentation.screen.logviewer.LogViewerScreen
 import com.example.uwbtest.presentation.screen.oob.OobExchangeScreen
@@ -29,6 +30,7 @@ fun AppNavGraph(navController: NavHostController) {
             CapabilityCheckScreen(
                 onProceed = { navController.navigate(Screen.RoleSelect.route) },
                 onViewLogs = { navController.navigate(Screen.LogViewer.route) },
+                onAbout = { navController.navigate(Screen.About.route) },
             )
         }
 
@@ -68,6 +70,11 @@ fun AppNavGraph(navController: NavHostController) {
             LogViewerScreen(
                 onBack = { navController.popBackStack() },
             )
+        }
+
+        // ── About ──────────────────────────────────────────────
+        composable(route = Screen.About.route) {
+            AboutScreen(onBack = { navController.popBackStack() })
         }
     }
 }

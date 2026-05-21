@@ -18,6 +18,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Assignment
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Error
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -51,6 +52,7 @@ import com.example.uwbtest.presentation.component.PermissionHandler
 fun CapabilityCheckScreen(
     onProceed: () -> Unit,
     onViewLogs: () -> Unit = {},
+    onAbout: () -> Unit = {},
     viewModel: CapabilityCheckViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -68,6 +70,9 @@ fun CapabilityCheckScreen(
                 actions = {
                     IconButton(onClick = onViewLogs) {
                         Icon(Icons.Default.Assignment, stringResource(R.string.capability_logs_action))
+                    }
+                    IconButton(onClick = onAbout) {
+                        Icon(Icons.Default.Info, stringResource(R.string.about_menu_item))
                     }
                 },
             )
