@@ -1,7 +1,7 @@
 package com.example.uwbtest.domain.model
 
 import com.google.common.truth.Truth.assertThat
-import org.junit.Test
+import org.junit.jupiter.api.Test
 
 class UwbRangingCapabilitiesTest {
 

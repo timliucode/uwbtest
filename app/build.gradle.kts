@@ -3,7 +3,6 @@ val ciVersionCode: Int    = System.getenv("RELEASE_VERSION_CODE")?.toIntOrNull()
 
 plugins {
     alias(libs.plugins.android.application)
-    alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.ksp)
     alias(libs.plugins.hilt)
@@ -16,7 +15,7 @@ android {
     defaultConfig {
         applicationId = "com.example.uwbtest"
         minSdk = 31          // Android 12：UWB_RANGING 權限最低需求
-        targetSdk = 35
+        targetSdk = 36
         versionCode = ciVersionCode
         versionName = ciVersionName
 
@@ -34,13 +33,12 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = true          // R8：dead code 移除 + obfuscate
-            isShrinkResources = true        // 移除未使用資源（需搭配 minify）
+            isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            // CI 有 KEYSTORE_BASE64 → 正式簽名；本機 → fallback 到 debug keystore
             signingConfig = if (System.getenv("KEYSTORE_BASE64") != null) {
                 signingConfigs.getByName("release")
             } else {
@@ -54,20 +52,25 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
 
-    kotlinOptions {
-        jvmTarget = "17"
-    }
-
     buildFeatures {
         compose = true
     }
 
     testOptions {
         unitTests {
-            isIncludeAndroidResources = true
             isReturnDefaultValues = true
         }
     }
+}
+
+kotlin {
+    compilerOptions {
+        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
+    }
+}
+
+tasks.withType<Test> {
+    useJUnitPlatform()
 }
 
 dependencies {
@@ -82,7 +85,7 @@ dependencies {
     // Activity
     implementation(libs.androidx.activity.compose)
 
-    // Compose BOM — 版本由 BOM 統一管理，不需個別指定
+    // Compose BOM — 版本由 BOM 統一管理
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.compose.ui)
     implementation(libs.androidx.compose.ui.graphics)
@@ -101,22 +104,24 @@ dependencies {
     // Coroutines
     implementation(libs.kotlinx.coroutines.android)
 
-    // ── UWB 1.0.0 ─────────────────────────────────────────
+    // UWB
     implementation(libs.androidx.uwb)
 
-    // ── QR Code（OOB 參數 QR 生成 + 掃描）──────────────────
-    implementation(libs.zxing.embedded)
+    // QR Code — 生成（純 Kotlin）
+    implementation(libs.qrcode.kotlin)
+
+    // QR Code — 掃描（CameraX + ML Kit）
+    implementation(libs.quickie)
 
     // Debug
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
 
     // Unit Test
-    testImplementation(libs.junit4)
+    testImplementation(libs.junit.jupiter)
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     testImplementation(libs.mockito.kotlin)
     testImplementation(libs.turbine)
     testImplementation(libs.truth)
     testImplementation(libs.kotlinx.coroutines.test)
-    testImplementation(libs.androidx.arch.core.test)
-    testImplementation(libs.robolectric)
 }

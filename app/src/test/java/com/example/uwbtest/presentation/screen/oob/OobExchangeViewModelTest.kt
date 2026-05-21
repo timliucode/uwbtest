@@ -4,12 +4,12 @@ import androidx.lifecycle.SavedStateHandle
 import com.example.uwbtest.domain.model.UwbDeviceInfo
 import com.example.uwbtest.domain.model.UwbRole
 import com.example.uwbtest.domain.usecase.GetLocalAddressUseCase
-import com.example.uwbtest.util.MainDispatcherRule
+import com.example.uwbtest.util.MainDispatcherExtension
 import com.google.common.truth.Truth.assertThat
 import kotlinx.coroutines.test.runTest
-import org.junit.Before
-import org.junit.Rule
-import org.junit.Test
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.RegisterExtension
 import org.mockito.kotlin.any
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
@@ -17,8 +17,9 @@ import java.io.IOException
 
 class OobExchangeViewModelTest {
 
-    @get:Rule
-    val mainDispatcherRule = MainDispatcherRule()
+    @JvmField
+    @RegisterExtension
+    val mainDispatcherRule = MainDispatcherExtension()
 
     private lateinit var getLocalAddress: GetLocalAddressUseCase
 
@@ -34,7 +35,7 @@ class OobExchangeViewModelTest {
         role = UwbRole.Controlee,
     )
 
-    @Before
+    @BeforeEach
     fun setUp() {
         getLocalAddress = mock()
     }
@@ -87,7 +88,6 @@ class OobExchangeViewModelTest {
 
         val vm = buildViewModel(isController = false)
 
-        // controleeDeviceInfo has null channel/preamble → keeps default values
         assertThat(vm.uiState.value.channelNumber).isEqualTo("9")
         assertThat(vm.uiState.value.preambleIndex).isEqualTo("10")
     }
@@ -234,12 +234,9 @@ class OobExchangeViewModelTest {
         val vm = buildViewModel(isController = true)
 
         vm.onPeerAddressChanged("A1:B2")
-        // session key is auto-generated for controller, no need to set it manually
 
         assertThat(vm.uiState.value.canProceed).isTrue()
     }
-
-    // ── Session Key 隨機生成 ───────────────────────────────────────────────
 
     @Test
     fun `init - controller generates random session key of 16 hex chars`() = runTest {
@@ -267,8 +264,6 @@ class OobExchangeViewModelTest {
 
         assertThat(vm.uiState.value.sessionKeyHex).isEmpty()
     }
-
-    // ── onQrScanned ───────────────────────────────────────────────────────
 
     @Test
     fun `onQrScanned - fills peer address, channel, preamble and key from controller QR`() = runTest {

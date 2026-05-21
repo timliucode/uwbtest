@@ -125,12 +125,12 @@ class CapabilityCheckViewModel @Inject constructor(
     private fun buildDeviceInfo(): DeviceInfo {
         val oneUi = readOneUiVersion()
         return DeviceInfo(
-            manufacturer = Build.MANUFACTURER,
-            model = Build.MODEL,
-            androidVersion = Build.VERSION.RELEASE,
+            manufacturer = Build.MANUFACTURER ?: "",
+            model = Build.MODEL ?: "",
+            androidVersion = Build.VERSION.RELEASE ?: "",
             sdkLevel = Build.VERSION.SDK_INT,
             oneUiVersion = oneUi,
-            buildDisplay = Build.DISPLAY,
+            buildDisplay = Build.DISPLAY ?: "",
         )
     }
 
@@ -144,7 +144,7 @@ class CapabilityCheckViewModel @Inject constructor(
      * 非 Samsung 裝置或讀取失敗時回傳 null。
      */
     private fun readOneUiVersion(): String? {
-        if (!Build.MANUFACTURER.equals("samsung", ignoreCase = true)) return null
+        if (Build.MANUFACTURER?.equals("samsung", ignoreCase = true) != true) return null
         return try {
             val clazz = Class.forName("android.os.SystemProperties")
             val method = clazz.getMethod("get", String::class.java, String::class.java)

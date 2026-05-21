@@ -4,17 +4,17 @@ import com.example.uwbtest.domain.model.OobParams
 import com.example.uwbtest.domain.model.RangingState
 import com.example.uwbtest.domain.usecase.StartRangingUseCase
 import com.example.uwbtest.presentation.screen.oob.OobParamsHolder
-import com.example.uwbtest.util.MainDispatcherRule
+import com.example.uwbtest.util.MainDispatcherExtension
 import com.google.common.truth.Truth.assertThat
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
-import org.junit.After
-import org.junit.Before
-import org.junit.Rule
-import org.junit.Test
+import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.RegisterExtension
 import org.mockito.kotlin.any
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.times
@@ -24,8 +24,9 @@ import org.mockito.kotlin.whenever
 @OptIn(ExperimentalCoroutinesApi::class)
 class RangingViewModelTest {
 
-    @get:Rule
-    val mainDispatcherRule = MainDispatcherRule()
+    @JvmField
+    @RegisterExtension
+    val mainDispatcherRule = MainDispatcherExtension()
 
     private lateinit var startRanging: StartRangingUseCase
 
@@ -36,13 +37,13 @@ class RangingViewModelTest {
         sessionKeyHex = "0102030405060708",
     )
 
-    @Before
+    @BeforeEach
     fun setUp() {
         startRanging = mock()
         OobParamsHolder.params = testParams
     }
 
-    @After
+    @AfterEach
     fun tearDown() {
         OobParamsHolder.params = null
     }
