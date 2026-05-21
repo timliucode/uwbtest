@@ -7,6 +7,7 @@
     <string name="action_continue">繼續</string>
     <string name="action_stop">停止</string>
     <string name="cd_copy">複製</string>
+    <string name="cd_back">返回</string>
 
     <!-- Shared status labels -->
     <string name="label_supported">支援 ✓</string>
