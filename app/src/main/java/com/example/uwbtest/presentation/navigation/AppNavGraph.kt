@@ -1,5 +1,9 @@
 package com.example.uwbtest.presentation.navigation
 
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -13,17 +17,15 @@ import com.example.uwbtest.presentation.screen.oob.OobExchangeScreen
 import com.example.uwbtest.presentation.screen.ranging.RangingScreen
 import com.example.uwbtest.presentation.screen.roleselect.RoleSelectScreen
 
-/**
- * App 的 Navigation Graph。
- * 在 MainActivity 的 Scaffold 內透過 NavHost 組合。
- *
- * 流程：CapabilityCheck → RoleSelect → OobExchange → Ranging
- */
 @Composable
 fun AppNavGraph(navController: NavHostController) {
     NavHost(
         navController = navController,
         startDestination = Screen.CapabilityCheck.route,
+        enterTransition = { slideInHorizontally { it } + fadeIn() },
+        exitTransition = { slideOutHorizontally { -it / 3 } + fadeOut() },
+        popEnterTransition = { slideInHorizontally { -it / 3 } + fadeIn() },
+        popExitTransition = { slideOutHorizontally { it } + fadeOut() },
     ) {
         // ── Screen 1：能力檢查 ─────────────────────────────────
         composable(route = Screen.CapabilityCheck.route) {
