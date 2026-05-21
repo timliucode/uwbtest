@@ -100,6 +100,17 @@
     <string name="ranging_history_title">歷史記錄</string>
     <string name="ranging_history_count">%1$d / 50</string>
 
+    <!-- Log Viewer screen -->
+    <string name="log_viewer_title">應用程式記錄</string>
+    <string name="log_search_hint">搜尋標籤或訊息…</string>
+    <string name="log_empty">無符合篩選條件的記錄</string>
+    <string name="log_refresh">重新整理</string>
+    <string name="log_clear">清除</string>
+    <string name="log_share">分享</string>
+    <string name="log_capture_logcat">擷取 Logcat</string>
+    <string name="log_logcat_section">Logcat 輸出</string>
+    <string name="capability_logs_action">查看記錄</string>
+
     <!-- Ranging screen — background toggle -->
     <string name="ranging_run_in_background">移至背景執行</string>
 
