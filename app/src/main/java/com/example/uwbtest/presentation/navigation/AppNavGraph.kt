@@ -1,9 +1,8 @@
 package com.example.uwbtest.presentation.navigation
 
+import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -22,10 +21,10 @@ fun AppNavGraph(navController: NavHostController) {
     NavHost(
         navController = navController,
         startDestination = Screen.CapabilityCheck.route,
-        enterTransition = { slideInHorizontally { it } + fadeIn() },
-        exitTransition = { slideOutHorizontally { -it / 3 } + fadeOut() },
-        popEnterTransition = { slideInHorizontally { -it / 3 } + fadeIn() },
-        popExitTransition = { slideOutHorizontally { it } + fadeOut() },
+        enterTransition = { slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Start) + fadeIn() },
+        exitTransition = { slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Start, targetOffset = { it / 3 }) + fadeOut() },
+        popEnterTransition = { slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.End, initialOffset = { it / 3 }) + fadeIn() },
+        popExitTransition = { slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.End) + fadeOut() },
     ) {
         // ── Screen 1：能力檢查 ─────────────────────────────────
         composable(route = Screen.CapabilityCheck.route) {

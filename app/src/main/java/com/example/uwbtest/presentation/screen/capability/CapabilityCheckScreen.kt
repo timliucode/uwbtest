@@ -91,7 +91,11 @@ fun CapabilityCheckScreen(
             ) {
                 val info = viewModel.deviceInfo
                 val capability = (uiState as? CapabilityCheckViewModel.UiState.Success)?.capability
-                Column(modifier = Modifier.weight(1f)) {
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .verticalScroll(rememberScrollState()),
+                ) {
                     DeviceInfoCard(
                         info = info,
                         capability = capability,
