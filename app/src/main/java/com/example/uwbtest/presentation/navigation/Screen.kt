@@ -24,4 +24,7 @@ sealed class Screen(val route: String) {
 
     /** 記錄檢視器（可從 CapabilityCheck TopAppBar 進入） */
     data object LogViewer : Screen("log_viewer")
+
+    /** 關於畫面（依賴版本、授權、Repo 連結） */
+    data object About : Screen("about")
 }

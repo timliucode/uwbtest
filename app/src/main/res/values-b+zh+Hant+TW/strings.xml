@@ -100,6 +100,17 @@
     <string name="ranging_history_title">歷史記錄</string>
     <string name="ranging_history_count">%1$d / 50</string>
 
+    <!-- About screen -->
+    <string name="about_title">關於</string>
+    <string name="about_version">版本 %1$s（%2$d）</string>
+    <string name="about_open_source">在 GitHub 上查看</string>
+    <string name="about_dependencies_title">開放原始碼函式庫</string>
+    <string name="about_licenses_title">授權條款</string>
+    <string name="about_apache2">Apache 2.0</string>
+    <string name="about_mit">MIT</string>
+    <string name="about_desc">用於測試兩台 Android 裝置之間 UWB（超寬頻）測距的開發者工具。</string>
+    <string name="about_menu_item">關於</string>
+
     <!-- Log Viewer screen -->
     <string name="log_viewer_title">應用程式記錄</string>
     <string name="log_search_hint">搜尋標籤或訊息…</string>
