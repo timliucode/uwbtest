@@ -83,6 +83,7 @@ class UwbBackgroundRangingService : Service() {
     }
 
     private fun stopRanging() {
+        bridge.setRunning(false)
         rangingJob?.cancel()
         stopSelf()
     }

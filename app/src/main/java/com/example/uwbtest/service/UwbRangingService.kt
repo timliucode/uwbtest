@@ -93,6 +93,7 @@ class UwbRangingService : LifecycleService() {
     }
 
     private fun stopRanging() {
+        bridge.setRunning(false)
         rangingJob?.cancel()
         stopForeground(STOP_FOREGROUND_REMOVE)
         stopSelf()

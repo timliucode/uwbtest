@@ -62,7 +62,15 @@ fun AppNavGraph(navController: NavHostController) {
         // ── Screen 4：測距畫面 ─────────────────────────────────
         composable(route = Screen.Ranging.route) {
             RangingScreen(
-                onStop = { navController.popBackStack(Screen.RoleSelect.route, inclusive = false) },
+                onStop = {
+                    val popped = navController.popBackStack(Screen.RoleSelect.route, inclusive = false)
+                    if (!popped) {
+                        // Deep-linked from notification: role_select not in back stack — go to root.
+                        navController.navigate(Screen.CapabilityCheck.route) {
+                            popUpTo(navController.graph.id) { inclusive = true }
+                        }
+                    }
+                },
             )
         }
 
