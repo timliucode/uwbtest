@@ -2,6 +2,7 @@ package com.example.uwbtest.presentation.screen.ranging
 
 import android.content.Context
 import com.example.uwbtest.domain.model.RangingState
+import com.example.uwbtest.domain.model.UwbCapabilityStore
 import com.example.uwbtest.service.RangingServiceBridge
 import com.example.uwbtest.util.MainDispatcherExtension
 import com.google.common.truth.Truth.assertThat
@@ -29,14 +30,42 @@ class RangingViewModelTest {
 
     private lateinit var bridge: RangingServiceBridge
     private lateinit var mockContext: Context
+    private lateinit var capabilityStore: UwbCapabilityStore
 
     @BeforeEach
     fun setUp() {
         bridge = RangingServiceBridge()
         mockContext = mock()
+        capabilityStore = UwbCapabilityStore()
     }
 
-    private fun buildViewModel() = RangingViewModel(mockContext, bridge)
+    private fun buildViewModel() = RangingViewModel(mockContext, bridge, capabilityStore)
+
+    // ── Capability store ────────────────────────────────────────
+
+    @Test
+    fun `backgroundRangingAvailable reflects capability store`() {
+        val caps = com.example.uwbtest.domain.model.UwbRangingCapabilities(
+            isDistanceSupported = true, isAzimuthalAngleSupported = true,
+            isElevationAngleSupported = false, minRangingInterval = 200,
+            supportedChannels = emptySet(), supportedNtfConfigs = emptySet(),
+            supportedConfigIds = emptySet(), supportedSlotDurations = emptySet(),
+            supportedRangingUpdateRates = emptySet(),
+            isRangingIntervalReconfigureSupported = false,
+            isBackgroundRangingSupported = true,
+        )
+        capabilityStore.lastCapability = com.example.uwbtest.domain.model.UwbCapability(
+            hardwarePresent = true, isAvailable = true, rangingCapabilities = caps,
+        )
+        val vm = buildViewModel()
+        assertThat(vm.uiState.value.backgroundRangingAvailable).isTrue()
+    }
+
+    @Test
+    fun `backgroundRangingAvailable is false when capability store is empty`() {
+        val vm = buildViewModel()
+        assertThat(vm.uiState.value.backgroundRangingAvailable).isFalse()
+    }
 
     // ── State collection from bridge ────────────────────────────
 

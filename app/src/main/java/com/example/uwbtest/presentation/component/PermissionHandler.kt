@@ -7,18 +7,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 
 /**
- * 可重用的 UWB_RANGING 執行期權限申請 Composable。
+ * 同時申請 UWB_RANGING 與 POST_NOTIFICATIONS 執行期權限。
  *
- * 使用方式：
- * ```kotlin
- * PermissionHandler(
- *     onGranted = { /* 繼續 UWB 操作 */ },
- *     onDenied  = { /* 顯示說明 UI */ },
- * )
- * ```
- *
- * 此 Composable 在進入 Composition 時自動發起權限申請。
- * 若使用者之前已授予，回調 onGranted 會立即被呼叫（透過 LaunchedEffect）。
+ * - [onGranted] 在 UWB_RANGING 已授予時呼叫（通知權限為 best-effort，不影響測距）。
+ * - [onDenied]  在 UWB_RANGING 被拒絕時呼叫。
  */
 @Composable
 fun PermissionHandler(
@@ -26,14 +18,16 @@ fun PermissionHandler(
     onDenied: () -> Unit,
 ) {
     val launcher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.RequestPermission(),
-        onResult = { isGranted ->
-            if (isGranted) onGranted() else onDenied()
+        contract = ActivityResultContracts.RequestMultiplePermissions(),
+        onResult = { results ->
+            val uwbGranted = results[Manifest.permission.UWB_RANGING] == true
+            if (uwbGranted) onGranted() else onDenied()
         },
     )
 
-    // Composable 進入 Composition 時自動發起申請
     LaunchedEffect(Unit) {
-        launcher.launch(Manifest.permission.UWB_RANGING)
+        launcher.launch(
+            arrayOf(Manifest.permission.UWB_RANGING, Manifest.permission.POST_NOTIFICATIONS),
+        )
     }
 }

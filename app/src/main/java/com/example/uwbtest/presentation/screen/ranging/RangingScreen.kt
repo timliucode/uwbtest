@@ -18,12 +18,16 @@ import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
@@ -153,6 +157,31 @@ private fun ColumnScope.RangingDataPanel(
         )
     }
 
+    // Ranging mode selector — only visible when background ranging is supported
+    if (uiState.backgroundRangingAvailable) {
+        Spacer(modifier = Modifier.height(4.dp))
+        RangingModeSelector(
+            selectedMode = uiState.rangingMode,
+            onModeSelected = { viewModel.setRangingMode(it) },
+        )
+        if (uiState.rangingMode == RangingMode.BACKGROUND) {
+            Spacer(modifier = Modifier.height(4.dp))
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.tertiaryContainer,
+                ),
+            ) {
+                Text(
+                    text = stringResource(R.string.ranging_mode_background_warning),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onTertiaryContainer,
+                    modifier = Modifier.padding(12.dp),
+                )
+            }
+        }
+    }
+
     Spacer(modifier = Modifier.height(8.dp))
 
     // 3D visualization card (collapsible, compact mode only)
@@ -242,6 +271,35 @@ private fun AoaText(label: String, value: Float?) {
             fontFamily = FontFamily.Monospace,
         )
         Text(label, style = MaterialTheme.typography.labelSmall)
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun RangingModeSelector(
+    selectedMode: RangingMode,
+    onModeSelected: (RangingMode) -> Unit,
+) {
+    val modes = listOf(RangingMode.FOREGROUND_SERVICE, RangingMode.BACKGROUND)
+    SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
+        modes.forEachIndexed { index, mode ->
+            SegmentedButton(
+                selected = selectedMode == mode,
+                onClick = { onModeSelected(mode) },
+                shape = SegmentedButtonDefaults.itemShape(index = index, count = modes.size),
+                label = {
+                    Text(
+                        text = stringResource(
+                            if (mode == RangingMode.FOREGROUND_SERVICE)
+                                R.string.ranging_mode_foreground
+                            else
+                                R.string.ranging_mode_background,
+                        ),
+                        style = MaterialTheme.typography.labelSmall,
+                    )
+                },
+            )
+        }
     }
 }
 

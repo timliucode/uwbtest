@@ -130,8 +130,12 @@
     <string name="log_filter_warn">W+</string>
     <string name="log_filter_error">E</string>
 
-    <!-- Ranging screen — background toggle -->
+    <!-- Ranging screen — mode selector -->
     <string name="ranging_run_in_background">Run in Background</string>
+    <string name="ranging_mode_label">Ranging Mode</string>
+    <string name="ranging_mode_foreground">Foreground Service</string>
+    <string name="ranging_mode_background">Background (Experimental)</string>
+    <string name="ranging_mode_background_warning">Background mode may be stopped by the system at any time. Use Foreground Service for reliable ranging.</string>
 
     <!-- Foreground service notification -->
     <string name="notif_channel_name">UWB Ranging</string>
