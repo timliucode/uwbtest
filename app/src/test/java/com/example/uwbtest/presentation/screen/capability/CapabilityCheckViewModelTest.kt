@@ -83,12 +83,11 @@ class CapabilityCheckViewModelTest {
     }
 
     @Test
-    fun `onPermissionDenied - sets Error state with permission denied message`() {
+    fun `onPermissionDenied - sets PermissionDenied state`() {
         viewModel.onPermissionDenied()
 
-        assertThat(viewModel.uiState.value).isEqualTo(
-            CapabilityCheckViewModel.UiState.Error("UWB_RANGING permission denied. Please grant it in Settings.")
-        )
+        assertThat(viewModel.uiState.value)
+            .isEqualTo(CapabilityCheckViewModel.UiState.PermissionDenied)
     }
 
     @Test

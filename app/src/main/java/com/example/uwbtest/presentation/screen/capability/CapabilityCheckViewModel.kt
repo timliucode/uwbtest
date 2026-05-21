@@ -95,6 +95,7 @@ class CapabilityCheckViewModel @Inject constructor(
     sealed interface UiState {
         data object Idle : UiState
         data object Loading : UiState
+        data object PermissionDenied : UiState
         data class Success(val capability: UwbCapability) : UiState
         data class Error(val message: String) : UiState
     }
@@ -117,7 +118,7 @@ class CapabilityCheckViewModel @Inject constructor(
 
     /** 使用者拒絕權限後呼叫 */
     fun onPermissionDenied() {
-        _uiState.value = UiState.Error("UWB_RANGING permission denied. Please grant it in Settings.")
+        _uiState.value = UiState.PermissionDenied
     }
 
     // ── Private helpers ─────────────────────────────────────────
