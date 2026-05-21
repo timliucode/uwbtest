@@ -21,4 +21,7 @@ sealed class Screen(val route: String) {
 
     /** 步驟 4：測距結果顯示 */
     data object Ranging : Screen("ranging")
+
+    /** 記錄檢視器（可從 CapabilityCheck TopAppBar 進入） */
+    data object LogViewer : Screen("log_viewer")
 }

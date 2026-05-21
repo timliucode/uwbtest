@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Assignment
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Error
 import androidx.compose.material.icons.filled.Warning
@@ -49,6 +50,7 @@ import com.example.uwbtest.presentation.component.PermissionHandler
 @Composable
 fun CapabilityCheckScreen(
     onProceed: () -> Unit,
+    onViewLogs: () -> Unit = {},
     viewModel: CapabilityCheckViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -61,7 +63,14 @@ fun CapabilityCheckScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(title = { Text(stringResource(R.string.capability_title)) })
+            TopAppBar(
+                title = { Text(stringResource(R.string.capability_title)) },
+                actions = {
+                    IconButton(onClick = onViewLogs) {
+                        Icon(Icons.Default.Assignment, stringResource(R.string.capability_logs_action))
+                    }
+                },
+            )
         },
     ) { innerPadding ->
         Column(

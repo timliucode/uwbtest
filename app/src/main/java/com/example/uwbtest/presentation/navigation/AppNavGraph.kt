@@ -7,6 +7,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.example.uwbtest.presentation.screen.capability.CapabilityCheckScreen
+import com.example.uwbtest.presentation.screen.logviewer.LogViewerScreen
 import com.example.uwbtest.presentation.screen.oob.OobExchangeScreen
 import com.example.uwbtest.presentation.screen.ranging.RangingScreen
 import com.example.uwbtest.presentation.screen.roleselect.RoleSelectScreen
@@ -27,6 +28,7 @@ fun AppNavGraph(navController: NavHostController) {
         composable(route = Screen.CapabilityCheck.route) {
             CapabilityCheckScreen(
                 onProceed = { navController.navigate(Screen.RoleSelect.route) },
+                onViewLogs = { navController.navigate(Screen.LogViewer.route) },
             )
         }
 
@@ -58,6 +60,13 @@ fun AppNavGraph(navController: NavHostController) {
         composable(route = Screen.Ranging.route) {
             RangingScreen(
                 onStop = { navController.popBackStack(Screen.RoleSelect.route, inclusive = false) },
+            )
+        }
+
+        // ── Log Viewer（從 CapabilityCheck TopAppBar 進入）────
+        composable(route = Screen.LogViewer.route) {
+            LogViewerScreen(
+                onBack = { navController.popBackStack() },
             )
         }
     }
