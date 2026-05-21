@@ -33,6 +33,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -43,6 +44,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.window.core.layout.WindowWidthSizeClass
 import com.example.uwbtest.R
 import com.example.uwbtest.domain.model.UwbCapability
 import com.example.uwbtest.presentation.component.PermissionHandler
@@ -57,6 +59,8 @@ fun CapabilityCheckScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
+    val isExpanded = currentWindowAdaptiveInfo().windowSizeClass.windowWidthSizeClass ==
+            WindowWidthSizeClass.EXPANDED
 
     PermissionHandler(
         onGranted = { viewModel.check() },
@@ -78,119 +82,164 @@ fun CapabilityCheckScreen(
             )
         },
     ) { innerPadding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-                .padding(horizontal = 24.dp)
-                .verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-        ) {
-            Spacer(modifier = Modifier.height(4.dp))
-
-            Text(
-                text = stringResource(R.string.step_1),
-                style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.primary,
-            )
-
-            val info = viewModel.deviceInfo
-            val capability = (uiState as? CapabilityCheckViewModel.UiState.Success)?.capability
-
-            DeviceInfoCard(
-                info = info,
-                capability = capability,
-                onCopy = {
-                    context.copyToClipboard(
-                        "UWB Capability Report",
-                        info.toClipboardText(capability),
+        if (isExpanded) {
+            // Tablet / foldable expanded: device info left, status + actions right
+            Row(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding)
+                    .padding(horizontal = 32.dp, vertical = 16.dp),
+                horizontalArrangement = Arrangement.spacedBy(24.dp),
+            ) {
+                val info = viewModel.deviceInfo
+                val capability = (uiState as? CapabilityCheckViewModel.UiState.Success)?.capability
+                Column(modifier = Modifier.weight(1f)) {
+                    DeviceInfoCard(
+                        info = info,
+                        capability = capability,
+                        onCopy = {
+                            context.copyToClipboard("UWB Capability Report", info.toClipboardText(capability))
+                        },
                     )
-                },
-            )
-
-            when (val state = uiState) {
-                is CapabilityCheckViewModel.UiState.Idle -> {
+                }
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .verticalScroll(rememberScrollState()),
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                ) {
                     Text(
-                        stringResource(R.string.capability_waiting_permission),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        text = stringResource(R.string.step_1),
+                        style = MaterialTheme.typography.labelLarge,
+                        color = MaterialTheme.colorScheme.primary,
                     )
+                    CapabilityStatusContent(uiState, onProceed, viewModel)
                 }
+            }
+        } else {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding)
+                    .padding(horizontal = 24.dp)
+                    .verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+            ) {
+                Spacer(modifier = Modifier.height(4.dp))
 
-                is CapabilityCheckViewModel.UiState.Loading -> {
+                Text(
+                    text = stringResource(R.string.step_1),
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.primary,
+                )
+
+                val info = viewModel.deviceInfo
+                val capability = (uiState as? CapabilityCheckViewModel.UiState.Success)?.capability
+
+                DeviceInfoCard(
+                    info = info,
+                    capability = capability,
+                    onCopy = {
+                        context.copyToClipboard(
+                            "UWB Capability Report",
+                            info.toClipboardText(capability),
+                        )
+                    },
+                )
+
+                CapabilityStatusContent(uiState, onProceed, viewModel)
+
+                Spacer(modifier = Modifier.height(24.dp))
+            }
+        }
+    }
+}
+
+@Composable
+private fun CapabilityStatusContent(
+    uiState: CapabilityCheckViewModel.UiState,
+    onProceed: () -> Unit,
+    viewModel: CapabilityCheckViewModel,
+) {
+    when (val state = uiState) {
+        is CapabilityCheckViewModel.UiState.Idle -> {
+            Text(
+                stringResource(R.string.capability_waiting_permission),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+
+        is CapabilityCheckViewModel.UiState.Loading -> {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
+                Text(stringResource(R.string.capability_checking))
+            }
+        }
+
+        is CapabilityCheckViewModel.UiState.PermissionDenied -> {
+            ErrorCard(message = stringResource(R.string.capability_permission_denied))
+            Spacer(modifier = Modifier.height(8.dp))
+            OutlinedButton(
+                onClick = { viewModel.check() },
+                modifier = Modifier.fillMaxWidth(),
+            ) { Text(stringResource(R.string.action_retry)) }
+        }
+
+        is CapabilityCheckViewModel.UiState.Success -> {
+            if (!state.capability.isAvailable && state.capability.unavailableReason != null) {
+                ErrorCard(message = state.capability.unavailableReason)
+            }
+
+            if (state.capability.isAndroid13OrLower && state.capability.isAvailable) {
+                Card(
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.tertiaryContainer),
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
                     Row(
-                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.padding(16.dp),
                         horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        verticalAlignment = Alignment.Top,
                     ) {
-                        CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
-                        Text(stringResource(R.string.capability_checking))
+                        Icon(Icons.Default.Warning, null, tint = MaterialTheme.colorScheme.tertiary)
+                        Text(
+                            text = stringResource(R.string.capability_android13_warning),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onTertiaryContainer,
+                        )
                     }
-                }
-
-                is CapabilityCheckViewModel.UiState.PermissionDenied -> {
-                    ErrorCard(message = stringResource(R.string.capability_permission_denied))
-                    Spacer(modifier = Modifier.height(8.dp))
-                    OutlinedButton(
-                        onClick = { viewModel.check() },
-                        modifier = Modifier.fillMaxWidth(),
-                    ) { Text(stringResource(R.string.action_retry)) }
-                }
-
-                is CapabilityCheckViewModel.UiState.Success -> {
-                    if (!state.capability.isAvailable && state.capability.unavailableReason != null) {
-                        ErrorCard(message = state.capability.unavailableReason)
-                    }
-
-                    if (state.capability.isAndroid13OrLower && state.capability.isAvailable) {
-                        Card(
-                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.tertiaryContainer),
-                            modifier = Modifier.fillMaxWidth(),
-                        ) {
-                            Row(
-                                modifier = Modifier.padding(16.dp),
-                                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                                verticalAlignment = Alignment.Top,
-                            ) {
-                                Icon(Icons.Default.Warning, null, tint = MaterialTheme.colorScheme.tertiary)
-                                Text(
-                                    text = stringResource(R.string.capability_android13_warning),
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onTertiaryContainer,
-                                )
-                            }
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    ) {
-                        OutlinedButton(
-                            onClick = { viewModel.check() },
-                            modifier = Modifier.weight(1f),
-                        ) { Text(stringResource(R.string.action_retry)) }
-
-                        Button(
-                            onClick = onProceed,
-                            enabled = state.capability.canProceed,
-                            modifier = Modifier.weight(1f),
-                        ) { Text(stringResource(R.string.action_continue)) }
-                    }
-                }
-
-                is CapabilityCheckViewModel.UiState.Error -> {
-                    ErrorCard(message = state.message)
-                    Spacer(modifier = Modifier.height(8.dp))
-                    OutlinedButton(
-                        onClick = { viewModel.check() },
-                        modifier = Modifier.fillMaxWidth(),
-                    ) { Text(stringResource(R.string.action_retry)) }
                 }
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                OutlinedButton(
+                    onClick = { viewModel.check() },
+                    modifier = Modifier.weight(1f),
+                ) { Text(stringResource(R.string.action_retry)) }
+
+                Button(
+                    onClick = onProceed,
+                    enabled = state.capability.canProceed,
+                    modifier = Modifier.weight(1f),
+                ) { Text(stringResource(R.string.action_continue)) }
+            }
+        }
+
+        is CapabilityCheckViewModel.UiState.Error -> {
+            ErrorCard(message = state.message)
+            Spacer(modifier = Modifier.height(8.dp))
+            OutlinedButton(
+                onClick = { viewModel.check() },
+                modifier = Modifier.fillMaxWidth(),
+            ) { Text(stringResource(R.string.action_retry)) }
         }
     }
 }
