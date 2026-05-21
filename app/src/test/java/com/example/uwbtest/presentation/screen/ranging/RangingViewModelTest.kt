@@ -1,26 +1,25 @@
 package com.example.uwbtest.presentation.screen.ranging
 
-import com.example.uwbtest.domain.model.OobParams
+import android.content.Context
 import com.example.uwbtest.domain.model.RangingState
-import com.example.uwbtest.domain.usecase.StartRangingUseCase
-import com.example.uwbtest.presentation.screen.oob.OobParamsHolder
+import com.example.uwbtest.service.RangingServiceBridge
 import com.example.uwbtest.util.MainDispatcherExtension
 import com.google.common.truth.Truth.assertThat
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
-import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.RegisterExtension
-import org.mockito.kotlin.any
 import org.mockito.kotlin.mock
-import org.mockito.kotlin.times
-import org.mockito.kotlin.verify
-import org.mockito.kotlin.whenever
 
+/**
+ * RangingViewModel tests.
+ *
+ * The ViewModel now delegates ranging to [com.example.uwbtest.service.UwbRangingService]
+ * and subscribes to states via [RangingServiceBridge]. Tests inject states directly
+ * into the bridge to verify ViewModel behavior without starting a real service.
+ */
 @OptIn(ExperimentalCoroutinesApi::class)
 class RangingViewModelTest {
 
@@ -28,125 +27,102 @@ class RangingViewModelTest {
     @RegisterExtension
     val mainDispatcherRule = MainDispatcherExtension()
 
-    private lateinit var startRanging: StartRangingUseCase
-
-    private val testParams = OobParams(
-        peerAddress = byteArrayOf(0x01, 0x02),
-        channelNumber = 9,
-        preambleIndex = 10,
-        sessionKeyHex = "0102030405060708",
-    )
+    private lateinit var bridge: RangingServiceBridge
+    private lateinit var mockContext: Context
 
     @BeforeEach
     fun setUp() {
-        startRanging = mock()
-        OobParamsHolder.params = testParams
+        bridge = RangingServiceBridge()
+        mockContext = mock()
     }
 
-    @AfterEach
-    fun tearDown() {
-        OobParamsHolder.params = null
-    }
+    private fun buildViewModel() = RangingViewModel(mockContext, bridge)
 
-    private fun buildViewModel(): RangingViewModel {
-        return RangingViewModel(startRanging)
+    // ── State collection from bridge ────────────────────────────
+
+    @Test
+    fun `initial state is Idle`() {
+        val vm = buildViewModel()
+        assertThat(vm.uiState.value.currentState).isEqualTo(RangingState.Idle)
     }
 
     @Test
-    fun `init - starts ranging automatically`() = runTest {
-        whenever(startRanging(testParams)).thenReturn(flowOf(RangingState.Initializing))
-
-        buildViewModel()
-        advanceUntilIdle()
-
-        verify(startRanging).invoke(testParams)
-    }
-
-    @Test
-    fun `OobParams null - sets Failure state`() = runTest {
-        OobParamsHolder.params = null
-
+    fun `bridge Active emission - updates currentState and history`() = runTest {
+        val active = RangingState.Active(1.5f, 30f, null, 0L)
         val vm = buildViewModel()
 
-        val state = vm.uiState.value.currentState
-        assertThat(state).isInstanceOf(RangingState.Failure::class.java)
-        assertThat((state as RangingState.Failure).reason).contains("OobParams not found")
-    }
-
-    @Test
-    fun `start - updates currentState from flow`() = runTest {
-        val active = RangingState.Active(1.5f, null, null, 0L)
-        whenever(startRanging(testParams)).thenReturn(flowOf(active))
-
-        val vm = buildViewModel()
+        bridge.emit(active)
         advanceUntilIdle()
 
         assertThat(vm.uiState.value.currentState).isEqualTo(active)
+        assertThat(vm.uiState.value.history).containsExactly(active)
     }
 
     @Test
-    fun `start - appends Active states to history`() = runTest {
-        val active1 = RangingState.Active(1.0f, null, null, 0L)
-        val active2 = RangingState.Active(2.0f, null, null, 1L)
-        val active3 = RangingState.Active(3.0f, null, null, 2L)
-        whenever(startRanging(testParams)).thenReturn(flowOf(active1, active2, active3))
-
+    fun `bridge Disconnected emission - updates currentState, no history entry`() = runTest {
         val vm = buildViewModel()
+
+        bridge.emit(RangingState.Disconnected)
         advanceUntilIdle()
 
-        assertThat(vm.uiState.value.history).hasSize(3)
+        assertThat(vm.uiState.value.currentState).isEqualTo(RangingState.Disconnected)
+        assertThat(vm.uiState.value.history).isEmpty()
     }
 
     @Test
-    fun `start - history is capped at 50 items`() = runTest {
-        val states = (0..54).map { i -> RangingState.Active(i.toFloat(), null, null, i.toLong()) }
-        whenever(startRanging(testParams)).thenReturn(flow { states.forEach { emit(it) } })
-
+    fun `bridge Failure emission - sets errorMessage`() = runTest {
         val vm = buildViewModel()
+
+        bridge.emit(RangingState.Failure("stopped by policy (code: 3)"))
+        advanceUntilIdle()
+
+        assertThat(vm.uiState.value.errorMessage).isEqualTo("stopped by policy (code: 3)")
+    }
+
+    @Test
+    fun `Active emission after Failure - clears errorMessage`() = runTest {
+        val active = RangingState.Active(2.0f, null, null, 1L)
+        val vm = buildViewModel()
+
+        bridge.emit(RangingState.Failure("err"))
+        advanceUntilIdle()
+        bridge.emit(active)
+        advanceUntilIdle()
+
+        assertThat(vm.uiState.value.errorMessage).isNull()
+    }
+
+    // ── History tracking ────────────────────────────────────────
+
+    @Test
+    fun `history is capped at 50 items`() = runTest {
+        val vm = buildViewModel()
+
+        repeat(55) { i ->
+            bridge.emit(RangingState.Active(i.toFloat(), null, null, i.toLong()))
+        }
         advanceUntilIdle()
 
         assertThat(vm.uiState.value.history).hasSize(50)
     }
 
     @Test
-    fun `start - non-Active states are not added to history`() = runTest {
-        whenever(startRanging(testParams)).thenReturn(flowOf(RangingState.Initializing, RangingState.Disconnected))
-
+    fun `non-Active states are not added to history`() = runTest {
         val vm = buildViewModel()
+
+        bridge.emit(RangingState.Initializing)
+        bridge.emit(RangingState.Disconnected)
         advanceUntilIdle()
 
         assertThat(vm.uiState.value.history).isEmpty()
     }
 
-    @Test
-    fun `start - Failure sets errorMessage`() = runTest {
-        whenever(startRanging(testParams)).thenReturn(flowOf(RangingState.Failure("reason 3")))
-
-        val vm = buildViewModel()
-        advanceUntilIdle()
-
-        assertThat(vm.uiState.value.errorMessage).isEqualTo("reason 3")
-    }
+    // ── Stop ───────────────────────────────────────────────────
 
     @Test
-    fun `start - Active after Failure clears errorMessage`() = runTest {
-        val active = RangingState.Active(1.0f, null, null, 0L)
-        whenever(startRanging(testParams)).thenReturn(flow {
-            emit(RangingState.Failure("err"))
-            emit(active)
-        })
-
+    fun `stop - sets currentState to Idle immediately`() = runTest {
         val vm = buildViewModel()
-        advanceUntilIdle()
-
-        assertThat(vm.uiState.value.errorMessage).isNull()
-    }
-
-    @Test
-    fun `stop - cancels job and sets Idle`() = runTest {
-        whenever(startRanging(testParams)).thenReturn(flowOf(RangingState.Initializing))
-
-        val vm = buildViewModel()
+        bridge.emit(RangingState.Active(1.0f, null, null, 0L))
         advanceUntilIdle()
 
         vm.stop()
@@ -155,38 +131,12 @@ class RangingViewModelTest {
     }
 
     @Test
-    fun `stop - can be called twice without exception`() = runTest {
-        whenever(startRanging(testParams)).thenReturn(flowOf())
-
+    fun `stop - can be called multiple times without exception`() = runTest {
         val vm = buildViewModel()
-        advanceUntilIdle()
 
         vm.stop()
         vm.stop()
 
         assertThat(vm.uiState.value.currentState).isEqualTo(RangingState.Idle)
-    }
-
-    @Test
-    fun `start after stop - calls startRanging again`() = runTest {
-        whenever(startRanging(testParams)).thenReturn(flowOf())
-
-        val vm = buildViewModel()
-        advanceUntilIdle()
-        vm.stop()
-        vm.start()
-        advanceUntilIdle()
-
-        verify(startRanging, times(2)).invoke(testParams)
-    }
-
-    @Test
-    fun `Disconnected state - reflected in currentState`() = runTest {
-        whenever(startRanging(testParams)).thenReturn(flowOf(RangingState.Disconnected))
-
-        val vm = buildViewModel()
-        advanceUntilIdle()
-
-        assertThat(vm.uiState.value.currentState).isEqualTo(RangingState.Disconnected)
     }
 }
