@@ -33,8 +33,8 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
 import androidx.compose.runtime.Composable
+import com.example.uwbtest.presentation.screen.isExpandedLayout
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -44,7 +44,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.window.core.layout.WindowWidthSizeClass
 import com.example.uwbtest.R
 import com.example.uwbtest.domain.model.UwbCapability
 import com.example.uwbtest.presentation.component.PermissionHandler
@@ -59,8 +58,7 @@ fun CapabilityCheckScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
-    val isExpanded = currentWindowAdaptiveInfo().windowSizeClass.windowWidthSizeClass ==
-            WindowWidthSizeClass.EXPANDED
+    val isExpanded = isExpandedLayout()
 
     PermissionHandler(
         onGranted = { viewModel.check() },
@@ -93,7 +91,11 @@ fun CapabilityCheckScreen(
             ) {
                 val info = viewModel.deviceInfo
                 val capability = (uiState as? CapabilityCheckViewModel.UiState.Success)?.capability
-                Column(modifier = Modifier.weight(1f)) {
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .verticalScroll(rememberScrollState()),
+                ) {
                     DeviceInfoCard(
                         info = info,
                         capability = capability,

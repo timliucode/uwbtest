@@ -1,8 +1,10 @@
 package com.example.uwbtest.presentation.screen.logviewer
 
 import android.util.Log
+import androidx.annotation.StringRes
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.uwbtest.R
 import com.example.uwbtest.domain.model.LogEntry
 import com.example.uwbtest.util.AppLogger
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -16,12 +18,12 @@ import javax.inject.Inject
 @HiltViewModel
 class LogViewerViewModel @Inject constructor() : ViewModel() {
 
-    enum class LevelFilter(val minLevel: Int, val labelKey: String) {
-        All(Log.VERBOSE, "ALL"),
-        Debug(Log.DEBUG, "D+"),
-        Info(Log.INFO, "I+"),
-        Warn(Log.WARN, "W+"),
-        Error(Log.ERROR, "E"),
+    enum class LevelFilter(@StringRes val labelRes: Int, val minLevel: Int) {
+        All(R.string.log_filter_all, Log.VERBOSE),
+        Debug(R.string.log_filter_debug, Log.DEBUG),
+        Info(R.string.log_filter_info, Log.INFO),
+        Warn(R.string.log_filter_warn, Log.WARN),
+        Error(R.string.log_filter_error, Log.ERROR),
     }
 
     data class UiState(

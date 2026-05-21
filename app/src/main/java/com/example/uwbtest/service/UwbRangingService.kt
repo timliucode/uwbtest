@@ -55,6 +55,10 @@ class UwbRangingService : LifecycleService() {
             return START_NOT_STICKY
         }
 
+        // Idempotent: cancel any existing session before starting a new one.
+        rangingJob?.cancel()
+        releaseWakeLock()
+
         startForeground(NOTIFICATION_ID, buildNotification(null))
         bridge.setRunning(true)
         acquireWakeLock()
@@ -76,14 +80,15 @@ class UwbRangingService : LifecycleService() {
             }
         }
 
-        return START_STICKY
+        // START_NOT_STICKY: if the process is killed, do not restart — OobParamsHolder
+        // would be empty and ranging cannot resume without the original session parameters.
+        return START_NOT_STICKY
     }
 
     override fun onDestroy() {
         bridge.setRunning(false)
         rangingJob?.cancel()
-        wakeLock?.release()
-        wakeLock = null
+        releaseWakeLock()
         super.onDestroy()
     }
 
@@ -94,10 +99,18 @@ class UwbRangingService : LifecycleService() {
     }
 
     private fun acquireWakeLock() {
+        if (wakeLock?.isHeld == true) return
         val pm = getSystemService(Context.POWER_SERVICE) as PowerManager
         wakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, WAKELOCK_TAG).also {
             it.acquire(30 * 60 * 1000L) // 30-minute safety timeout
         }
+    }
+
+    private fun releaseWakeLock() {
+        if (wakeLock?.isHeld == true) {
+            wakeLock?.release()
+        }
+        wakeLock = null
     }
 
     private fun createNotificationChannel() {
@@ -125,10 +138,10 @@ class UwbRangingService : LifecycleService() {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
         val contentText = when (state) {
-            is RangingState.Active -> buildString {
-                state.distanceMeters?.let { append(getString(R.string.notif_distance, it)) }
-                state.azimuthDegrees?.let { append(getString(R.string.notif_azimuth, it)) }
-            }.ifEmpty { getString(R.string.notif_initializing) }
+            is RangingState.Active -> buildList {
+                state.distanceMeters?.let { add(getString(R.string.notif_distance, it)) }
+                state.azimuthDegrees?.let { add(getString(R.string.notif_azimuth, it)) }
+            }.joinToString(" • ").ifEmpty { getString(R.string.notif_initializing) }
             is RangingState.Initializing -> getString(R.string.notif_initializing)
             is RangingState.Disconnected -> getString(R.string.notif_disconnected)
             is RangingState.Failure -> getString(R.string.notif_failure)

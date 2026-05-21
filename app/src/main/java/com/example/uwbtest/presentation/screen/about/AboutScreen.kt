@@ -1,7 +1,11 @@
 package com.example.uwbtest.presentation.screen.about
 
+import android.content.ActivityNotFoundException
+import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.widget.Toast
+import androidx.annotation.StringRes
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -42,6 +46,14 @@ import com.example.uwbtest.R
 
 private const val REPO_URL = "https://github.com/timliudev/uwb-tester"
 
+private fun Context.openUrl(url: String) {
+    try {
+        startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
+    } catch (_: ActivityNotFoundException) {
+        Toast.makeText(this, url, Toast.LENGTH_SHORT).show()
+    }
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AboutScreen(onBack: () -> Unit) {
@@ -53,7 +65,7 @@ fun AboutScreen(onBack: () -> Unit) {
                 title = { Text(stringResource(R.string.about_title)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null)
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.cd_back))
                     }
                 },
             )
@@ -101,11 +113,7 @@ fun AboutScreen(onBack: () -> Unit) {
             // ── GitHub link ────────────────────────────────────
             Row(
                 modifier = Modifier
-                    .clickable {
-                        context.startActivity(
-                            Intent(Intent.ACTION_VIEW, Uri.parse(REPO_URL))
-                        )
-                    }
+                    .clickable { context.openUrl(REPO_URL) }
                     .padding(vertical = 4.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
@@ -140,18 +148,23 @@ fun AboutScreen(onBack: () -> Unit) {
     }
 }
 
-private data class Dep(val name: String, val version: String, val license: String, val url: String)
+private data class Dep(
+    val name: String,
+    val version: String,
+    @StringRes val licenseRes: Int,
+    val url: String,
+)
 
 private val DEPENDENCIES = listOf(
-    Dep("Jetpack Compose BOM", "2026.05.01", "Apache 2.0", "https://developer.android.com/jetpack/compose"),
-    Dep("Material 3", "(via BOM)", "Apache 2.0", "https://m3.material.io"),
-    Dep("AndroidX Navigation Compose", "2.9.8", "Apache 2.0", "https://developer.android.com/jetpack/androidx/releases/navigation"),
-    Dep("Hilt", "2.59.2", "Apache 2.0", "https://dagger.dev/hilt"),
-    Dep("AndroidX UWB", "1.0.0", "Apache 2.0", "https://developer.android.com/jetpack/androidx/releases/core-uwb"),
-    Dep("AndroidX Lifecycle", "2.10.0", "Apache 2.0", "https://developer.android.com/jetpack/androidx/releases/lifecycle"),
-    Dep("Kotlin Coroutines", "1.11.0", "Apache 2.0", "https://github.com/Kotlin/kotlinx.coroutines"),
-    Dep("qrcode-kotlin", "4.5.0", "MIT", "https://github.com/g0dkar/qrcode-kotlin"),
-    Dep("quickie", "1.11.0", "MIT", "https://github.com/G00fY2/quickie"),
+    Dep("Jetpack Compose BOM", "2026.05.01", R.string.about_apache2, "https://developer.android.com/jetpack/compose"),
+    Dep("Material 3", "(via BOM)", R.string.about_apache2, "https://m3.material.io"),
+    Dep("AndroidX Navigation Compose", "2.9.8", R.string.about_apache2, "https://developer.android.com/jetpack/androidx/releases/navigation"),
+    Dep("Hilt", "2.59.2", R.string.about_apache2, "https://dagger.dev/hilt"),
+    Dep("AndroidX UWB", "1.0.0", R.string.about_apache2, "https://developer.android.com/jetpack/androidx/releases/core-uwb"),
+    Dep("AndroidX Lifecycle", "2.10.0", R.string.about_apache2, "https://developer.android.com/jetpack/androidx/releases/lifecycle"),
+    Dep("Kotlin Coroutines", "1.11.0", R.string.about_apache2, "https://github.com/Kotlin/kotlinx.coroutines"),
+    Dep("qrcode-kotlin", "4.5.0", R.string.about_mit, "https://github.com/g0dkar/qrcode-kotlin"),
+    Dep("quickie", "1.11.0", R.string.about_mit, "https://github.com/G00fY2/quickie"),
 )
 
 @Composable
@@ -166,9 +179,7 @@ private fun DependenciesCard() {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clickable {
-                            context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(dep.url)))
-                        }
+                        .clickable { context.openUrl(dep.url) }
                         .padding(vertical = 4.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.Top,
@@ -182,7 +193,7 @@ private fun DependenciesCard() {
                         )
                     }
                     Text(
-                        dep.license,
+                        stringResource(dep.licenseRes),
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.secondary,
                     )

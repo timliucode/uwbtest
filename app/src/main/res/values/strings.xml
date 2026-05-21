@@ -7,6 +7,7 @@
     <string name="action_continue">Continue</string>
     <string name="action_stop">Stop</string>
     <string name="cd_copy">Copy</string>
+    <string name="cd_back">Back</string>
 
     <!-- Shared status labels -->
     <string name="label_supported">Supported ✓</string>
@@ -97,6 +98,7 @@
     <string name="ranging_azimuth">Azimuth</string>
     <string name="ranging_elevation">Elevation</string>
     <string name="ranging_aoa_na">AoA N/A</string>
+    <string name="ranging_3d_view_title">3D Position View</string>
     <string name="ranging_history_title">History</string>
     <string name="ranging_history_count">%1$d / 50</string>
 
@@ -118,9 +120,15 @@
     <string name="log_refresh">Refresh</string>
     <string name="log_clear">Clear</string>
     <string name="log_share">Share</string>
+    <string name="log_share_subject">UWB Tester Logs</string>
     <string name="log_capture_logcat">Capture Logcat</string>
     <string name="log_logcat_section">Logcat Output</string>
     <string name="capability_logs_action">View Logs</string>
+    <string name="log_filter_all">ALL</string>
+    <string name="log_filter_debug">D+</string>
+    <string name="log_filter_info">I+</string>
+    <string name="log_filter_warn">W+</string>
+    <string name="log_filter_error">E</string>
 
     <!-- Ranging screen — background toggle -->
     <string name="ranging_run_in_background">Run in Background</string>
@@ -131,7 +139,7 @@
     <string name="notif_title">UWB Ranging Active</string>
     <string name="notif_initializing">Initializing…</string>
     <string name="notif_distance">Distance: %1$.2f m</string>
-    <string name="notif_azimuth">  Az: %1$.1f°</string>
+    <string name="notif_azimuth">Az: %1$.1f°</string>
     <string name="notif_action_stop">Stop</string>
     <string name="notif_disconnected">Peer disconnected</string>
     <string name="notif_failure">Ranging failed</string>

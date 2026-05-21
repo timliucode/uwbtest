@@ -16,14 +16,13 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 /**
- * RangingScreen의 ViewModel.
+ * RangingScreen 的 ViewModel。
  *
- * Ranging is handled by [UwbRangingService] (foreground service).
- * This ViewModel:
- *  1. Starts the service via Context (which calls StartRangingUseCase internally)
- *  2. Collects [RangingState] from [RangingServiceBridge] (shared flow)
- *  3. Maintains the last 50 Active measurements as history
- *  4. Stops the service on explicit stop or onCleared
+ * 測距由 [UwbRangingService]（前台服務）執行。此 ViewModel：
+ *  1. 若服務尚未運行，透過 Context 啟動服務（服務內部呼叫 StartRangingUseCase）
+ *  2. 從 [RangingServiceBridge] 收集 [RangingState]
+ *  3. 維護最近 50 筆 Active 測量的歷史記錄
+ *  4. 在明確停止或 onCleared 時停止服務
  */
 @HiltViewModel
 class RangingViewModel @Inject constructor(
@@ -46,7 +45,9 @@ class RangingViewModel @Inject constructor(
     }
 
     fun start() {
-        context.startForegroundService(UwbRangingService.startIntent(context))
+        if (!bridge.isRunning) {
+            context.startForegroundService(UwbRangingService.startIntent(context))
+        }
     }
 
     fun stop() {
