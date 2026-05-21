@@ -1,5 +1,5 @@
-val ciVersionName: String = System.getenv("RELEASE_VERSION_NAME") ?: "1.0.0"
-val ciVersionCode: Int    = System.getenv("RELEASE_VERSION_CODE")?.toIntOrNull() ?: 1
+val ciVersionName: String = System.getenv("RELEASE_VERSION_NAME") ?: "0.5.0"
+val ciVersionCode: Int    = System.getenv("RELEASE_VERSION_CODE")?.toIntOrNull() ?: 5
 
 plugins {
     alias(libs.plugins.android.application)
