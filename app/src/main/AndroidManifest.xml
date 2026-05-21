@@ -2,11 +2,15 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <!--
-        UWB_RANGING：執行期權限（Android 12 / API 31+），使用前必須動態申請。
-        此 App 的 minSdk = 31，所以所有裝置都需要此權限。
+        UWB_RANGING：執行期權限（Android 13 / API 33+），使用前必須動態申請。
+        此 App 的 minSdk = 33，所以所有裝置都需要此權限。
     -->
     <uses-permission android:name="android.permission.UWB_RANGING" />
     <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_CONNECTED_DEVICE" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
 
     <!--
         android:required="false" → 讓 App 可安裝到沒有 UWB 硬體的裝置。
@@ -21,6 +25,7 @@
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
+        android:localeConfig="@xml/locales_config"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.Uwbtest">
@@ -34,6 +39,15 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <service
+            android:name=".service.UwbRangingService"
+            android:foregroundServiceType="connectedDevice"
+            android:exported="false" />
+
+        <service
+            android:name=".service.UwbBackgroundRangingService"
+            android:exported="false" />
 
     </application>
 

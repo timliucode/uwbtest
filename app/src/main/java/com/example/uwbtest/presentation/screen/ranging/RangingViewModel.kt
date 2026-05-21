@@ -1,67 +1,103 @@
 package com.example.uwbtest.presentation.screen.ranging
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.uwbtest.domain.model.RangingState
-import com.example.uwbtest.domain.usecase.StartRangingUseCase
-import com.example.uwbtest.presentation.screen.oob.OobParamsHolder
+import com.example.uwbtest.domain.model.UwbCapabilityStore
+import com.example.uwbtest.service.RangingServiceBridge
+import com.example.uwbtest.service.UwbBackgroundRangingService
+import com.example.uwbtest.service.UwbRangingService
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Job
+import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-/**
- * RangingScreen 的 ViewModel。
- *
- * 職責：
- *  1. 從 OobParamsHolder 取得 OobParams（由 OobExchangeScreen 設定）
- *  2. 呼叫 StartRangingUseCase 取得 Flow<RangingState>
- *  3. 將每次 Active 狀態加入歷史記錄（最多 50 筆）
- *  4. 提供「停止」功能（取消 coroutine）
- *  5. onCleared() 確保 ranging 被停止
- */
+enum class RangingMode { FOREGROUND_SERVICE, BACKGROUND }
+
 @HiltViewModel
 class RangingViewModel @Inject constructor(
-    private val startRanging: StartRangingUseCase,
+    @ApplicationContext private val context: Context,
+    private val bridge: RangingServiceBridge,
+    private val capabilityStore: UwbCapabilityStore,
 ) : ViewModel() {
 
     data class UiState(
         val currentState: RangingState = RangingState.Idle,
         val history: List<RangingState.Active> = emptyList(),
         val errorMessage: String? = null,
+        val rangingMode: RangingMode = RangingMode.FOREGROUND_SERVICE,
+        val backgroundRangingAvailable: Boolean = false,
     )
 
-    private val _uiState = MutableStateFlow(UiState())
+    private val _uiState = MutableStateFlow(
+        UiState(
+            backgroundRangingAvailable =
+                capabilityStore.lastCapability?.rangingCapabilities?.isBackgroundRangingSupported
+                    ?: false,
+        ),
+    )
     val uiState: StateFlow<UiState> = _uiState.asStateFlow()
 
-    private var rangingJob: Job? = null
+    private val _sessionExpiredEvent = Channel<Unit>(Channel.BUFFERED)
+    val sessionExpiredEvent = _sessionExpiredEvent.receiveAsFlow()
 
     init {
         start()
+        collectBridgeState()
+    }
+
+    fun setRangingMode(mode: RangingMode) {
+        if (_uiState.value.rangingMode == mode) return
+        stop()
+        _uiState.update { it.copy(rangingMode = mode) }
+        // UwbClientSessionScope is single-use; auto-restart would immediately fail with
+        // "Ranging has already started". User must redo OOB exchange for a fresh scope.
     }
 
     fun start() {
-        val params = OobParamsHolder.params ?: run {
-            _uiState.update {
-                it.copy(
-                    currentState = RangingState.Failure("OobParams not found. Please complete OOB exchange first."),
-                )
-            }
-            return
+        if (bridge.isRunning) return
+        startServiceForMode(_uiState.value.rangingMode)
+    }
+
+    fun stop() {
+        // Guard: don't send a stop intent to a service that isn't running — doing so would
+        // start a new instance just to destroy it, creating a race with startForegroundService.
+        if (bridge.isRunning) {
+            context.startService(UwbRangingService.stopIntent(context))
+            context.startService(UwbBackgroundRangingService.stopIntent(context))
         }
+        _uiState.update { it.copy(currentState = RangingState.Idle) }
+    }
 
-        rangingJob?.cancel()
-        rangingJob = viewModelScope.launch {
-            _uiState.update { it.copy(currentState = RangingState.Initializing, errorMessage = null) }
+    private fun startServiceForMode(mode: RangingMode) {
+        when (mode) {
+            RangingMode.FOREGROUND_SERVICE ->
+                context.startForegroundService(UwbRangingService.startIntent(context))
+            RangingMode.BACKGROUND ->
+                context.startService(UwbBackgroundRangingService.startIntent(context))
+        }
+    }
 
-            startRanging(params).collect { state ->
+    override fun onCleared() {
+        super.onCleared()
+        if (bridge.isRunning) {
+            stop()
+        }
+    }
+
+    private fun collectBridgeState() {
+        viewModelScope.launch {
+            bridge.state.collect { state ->
                 _uiState.update { current ->
                     val newHistory = if (state is RangingState.Active) {
-                        (current.history + state).takeLast(50)  // 最多保留 50 筆
+                        (current.history + state).takeLast(50)
                     } else {
                         current.history
                     }
@@ -71,18 +107,16 @@ class RangingViewModel @Inject constructor(
                         errorMessage = if (state is RangingState.Failure) state.reason else null,
                     )
                 }
+                if (state is RangingState.Failure && isSessionExpiredFailure(state.reason)) {
+                    _sessionExpiredEvent.trySend(Unit)
+                }
             }
         }
     }
 
-    fun stop() {
-        rangingJob?.cancel()
-        rangingJob = null
-        _uiState.update { it.copy(currentState = RangingState.Idle) }
-    }
-
-    override fun onCleared() {
-        super.onCleared()
-        rangingJob?.cancel()  // Activity/Fragment 銷毀時確保停止 ranging
-    }
+    private fun isSessionExpiredFailure(reason: String?) =
+        reason != null && (
+            reason.contains("session expired", ignoreCase = true) ||
+            reason.contains("OobParams not found", ignoreCase = true)
+        )
 }

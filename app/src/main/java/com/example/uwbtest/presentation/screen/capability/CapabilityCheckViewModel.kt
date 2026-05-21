@@ -4,6 +4,7 @@ import android.os.Build
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.uwbtest.domain.model.UwbCapability
+import com.example.uwbtest.domain.model.UwbCapabilityStore
 import com.example.uwbtest.domain.usecase.CheckUwbCapabilityUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -21,6 +22,7 @@ import javax.inject.Inject
 @HiltViewModel
 class CapabilityCheckViewModel @Inject constructor(
     private val checkCapability: CheckUwbCapabilityUseCase,
+    private val capabilityStore: UwbCapabilityStore,
 ) : ViewModel() {
 
     // ── 裝置資訊（靜態，畫面載入即可用）────────────────────────
@@ -95,6 +97,7 @@ class CapabilityCheckViewModel @Inject constructor(
     sealed interface UiState {
         data object Idle : UiState
         data object Loading : UiState
+        data object PermissionDenied : UiState
         data class Success(val capability: UwbCapability) : UiState
         data class Error(val message: String) : UiState
     }
@@ -108,6 +111,7 @@ class CapabilityCheckViewModel @Inject constructor(
             _uiState.value = UiState.Loading
             try {
                 val capability = checkCapability()
+                capabilityStore.lastCapability = capability
                 _uiState.value = UiState.Success(capability)
             } catch (e: Exception) {
                 _uiState.value = UiState.Error(e.message ?: "Unknown error")
@@ -117,7 +121,7 @@ class CapabilityCheckViewModel @Inject constructor(
 
     /** 使用者拒絕權限後呼叫 */
     fun onPermissionDenied() {
-        _uiState.value = UiState.Error("UWB_RANGING permission denied. Please grant it in Settings.")
+        _uiState.value = UiState.PermissionDenied
     }
 
     // ── Private helpers ─────────────────────────────────────────
@@ -125,12 +129,12 @@ class CapabilityCheckViewModel @Inject constructor(
     private fun buildDeviceInfo(): DeviceInfo {
         val oneUi = readOneUiVersion()
         return DeviceInfo(
-            manufacturer = Build.MANUFACTURER,
-            model = Build.MODEL,
-            androidVersion = Build.VERSION.RELEASE,
+            manufacturer = Build.MANUFACTURER ?: "",
+            model = Build.MODEL ?: "",
+            androidVersion = Build.VERSION.RELEASE ?: "",
             sdkLevel = Build.VERSION.SDK_INT,
             oneUiVersion = oneUi,
-            buildDisplay = Build.DISPLAY,
+            buildDisplay = Build.DISPLAY ?: "",
         )
     }
 
@@ -144,7 +148,7 @@ class CapabilityCheckViewModel @Inject constructor(
      * 非 Samsung 裝置或讀取失敗時回傳 null。
      */
     private fun readOneUiVersion(): String? {
-        if (!Build.MANUFACTURER.equals("samsung", ignoreCase = true)) return null
+        if (Build.MANUFACTURER?.equals("samsung", ignoreCase = true) != true) return null
         return try {
             val clazz = Class.forName("android.os.SystemProperties")
             val method = clazz.getMethod("get", String::class.java, String::class.java)

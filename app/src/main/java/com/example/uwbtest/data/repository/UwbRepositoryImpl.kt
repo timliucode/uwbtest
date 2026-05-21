@@ -218,19 +218,26 @@ class UwbRepositoryImpl @Inject constructor(
         // 重用快取的 scope；若無快取則拋出例外
         val scope: UwbClientSessionScope = controllerScope ?: controleeScope
             ?: throw IllegalStateException(
-                "No cached UwbScope found. Call getLocalDeviceInfo() before startRanging()."
+                "UWB session expired — please return to OOB exchange to start a new session."
             )
 
-        // 1.0.0：prepareSession() 是 suspend fun，直接回傳 Flow<RangingResult>
-        // （舊版 alpha 的 .execute() 已移除）
-        val rangingFlow = scope.prepareSession(params)
-
-        emitAll(
-            rangingFlow.map { result ->
-                Log.v(TAG, "RangingResult: ${result::class.simpleName}")
-                mapper.map(result)
-            }
-        )
+        // UwbClientSessionScope is single-use. Clear the cache in finally so the next
+        // startRanging() call fails fast with "session expired" rather than the opaque
+        // "Ranging has already started" from the UWB library.
+        try {
+            // 1.0.0：prepareSession() 是 suspend fun，直接回傳 Flow<RangingResult>
+            // （舊版 alpha 的 .execute() 已移除）
+            val rangingFlow = scope.prepareSession(params)
+            emitAll(
+                rangingFlow.map { result ->
+                    Log.v(TAG, "RangingResult: ${result::class.simpleName}")
+                    mapper.map(result)
+                }
+            )
+        } finally {
+            controllerScope = null
+            controleeScope = null
+        }
     }.catch { e ->
         Log.e(TAG, "Ranging flow error", e)
         emit(RangingState.Failure("Ranging error: ${e.message}"))

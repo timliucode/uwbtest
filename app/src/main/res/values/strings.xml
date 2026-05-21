@@ -1,3 +1,163 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">UWB Tester</string>
+
+    <!-- Shared actions -->
+    <string name="action_retry">Retry</string>
+    <string name="action_continue">Continue</string>
+    <string name="action_stop">Stop</string>
+    <string name="cd_copy">Copy</string>
+    <string name="cd_back">Back</string>
+
+    <!-- Shared status labels -->
+    <string name="label_supported">Supported ✓</string>
+    <string name="label_not_supported">Not supported ✗</string>
+    <string name="label_present">Present ✓</string>
+    <string name="label_not_found">Not found ✗</string>
+    <string name="label_yes">Yes ✓</string>
+    <string name="label_no">No ✗</string>
+
+    <!-- Step labels -->
+    <string name="step_1">Step 1 of 4</string>
+    <string name="step_2">Step 2 of 4</string>
+    <string name="step_3">Step 3 of 4</string>
+
+    <!-- Capability Check screen -->
+    <string name="capability_title">UWB Capability Check</string>
+    <string name="capability_waiting_permission">Waiting for permission…</string>
+    <string name="capability_checking">Checking UWB availability…</string>
+    <string name="capability_permission_denied">UWB_RANGING permission denied. Please grant it in Settings.</string>
+    <string name="capability_android13_warning">Android 13 detected. If ranging fails, try toggling \'Reverse Bytes\' on the OOB screen.</string>
+
+    <!-- Device info card -->
+    <string name="device_info_title">Device Info</string>
+    <string name="cd_copy_report">Copy full report</string>
+    <string name="device_manufacturer">Manufacturer</string>
+    <string name="device_model">Model</string>
+    <string name="device_android">Android</string>
+    <string name="device_android_value">%1$s  (API %2$d)</string>
+    <string name="device_oneui">OneUI</string>
+    <string name="device_build">Build</string>
+
+    <!-- UWB status section -->
+    <string name="uwb_status_section">UWB Status</string>
+    <string name="uwb_hardware">Hardware</string>
+    <string name="uwb_available">Available</string>
+
+    <!-- Ranging capabilities section -->
+    <string name="ranging_capabilities_section">Ranging Capabilities</string>
+    <string name="cap_distance_ranging">Distance Ranging</string>
+    <string name="cap_azimuthal_angle">Azimuthal Angle (AoA)</string>
+    <string name="cap_elevation_angle">Elevation Angle (3D)</string>
+    <string name="cap_background_ranging">Background Ranging</string>
+    <string name="cap_interval_reconfigure">Interval Reconfigure</string>
+    <string name="cap_min_interval">Min Ranging Interval</string>
+    <string name="cap_min_interval_value">%1$d ms</string>
+    <string name="cap_channels">Channels</string>
+    <string name="cap_config_ids">Config IDs</string>
+    <string name="cap_ntf_configs">NTF Configs</string>
+    <string name="cap_slot_durations">Slot Durations</string>
+    <string name="cap_update_rates">Update Rates</string>
+
+    <!-- Role Select screen -->
+    <string name="role_select_title">Select Role</string>
+    <string name="role_select_description">Select the role for this device in the UWB ranging session.</string>
+    <string name="role_controller">Controller</string>
+    <string name="role_controlee">Controlee</string>
+    <string name="role_controller_desc">Initiate ranging session\nDefine UWB channel\n(Initiator)</string>
+    <string name="role_controlee_desc">Respond to ranging session\nReport position to Controller\n(Responder)</string>
+    <string name="role_both_note">Both devices must choose different roles in the same session.</string>
+
+    <!-- OOB Exchange screen -->
+    <string name="oob_title_controller">Controller — OOB Exchange</string>
+    <string name="oob_title_controlee">Controlee — OOB Exchange</string>
+    <string name="oob_description">Manually exchange UWB parameters between both devices.</string>
+    <string name="oob_my_address_title">My Address</string>
+    <string name="oob_loading_address">Retrieving local UWB address…</string>
+    <string name="oob_channel_preamble_value">Channel: %1$s  |  Preamble: %2$s</string>
+    <string name="cd_copy_address">Copy address</string>
+    <string name="oob_peer_address_title">Peer Address</string>
+    <string name="oob_peer_address_label">Peer UWB Address (hex, e.g. A1:B2)</string>
+    <string name="oob_peer_address_hint">Enter peer UWB address, or scan their QR code</string>
+    <string name="oob_scan_qr">Scan QR Code</string>
+    <string name="oob_channel_params_title">Channel Parameters</string>
+    <string name="oob_channel_params_hint">Get from Controller\'s My Address card (e.g., CH:9 → enter 9, PR:11 → enter 11)</string>
+    <string name="oob_channel_label">Channel</string>
+    <string name="oob_preamble_label">Preamble</string>
+    <string name="oob_session_key_title">Session Key (must match on both devices)</string>
+    <string name="oob_session_key_hint_controller">Randomly generated — included in QR code for automatic transfer to peer</string>
+    <string name="oob_session_key_hint_controlee">Auto-filled after scanning Controller\'s QR code; can be edited manually</string>
+    <string name="oob_session_key_label">Session Key (16 hex chars = 8 bytes)</string>
+    <string name="oob_reverse_bytes_title">Reverse Peer Bytes</string>
+    <string name="oob_reverse_bytes_desc">Reverse peer address byte-order (Android 13 debug tool)</string>
+    <string name="oob_start_ranging">Start Ranging</string>
+
+    <!-- Ranging screen -->
+    <string name="ranging_title">UWB Ranging</string>
+    <string name="ranging_distance_placeholder">--</string>
+    <string name="ranging_azimuth">Azimuth</string>
+    <string name="ranging_elevation">Elevation</string>
+    <string name="ranging_aoa_na">AoA N/A</string>
+    <string name="ranging_3d_view_title">3D Position View</string>
+    <string name="ranging_history_title">History</string>
+    <string name="ranging_history_count">%1$d / 50</string>
+
+    <!-- About screen -->
+    <string name="about_title">About</string>
+    <string name="about_version">Version %1$s (%2$d)</string>
+    <string name="about_open_source">View on GitHub</string>
+    <string name="about_dependencies_title">Open Source Libraries</string>
+    <string name="about_licenses_title">Licenses</string>
+    <string name="about_apache2">Apache 2.0</string>
+    <string name="about_mit">MIT</string>
+    <string name="about_desc">A developer tool for testing UWB (Ultra-Wideband) ranging between two Android devices.</string>
+    <string name="about_menu_item">About</string>
+
+    <!-- Log Viewer screen -->
+    <string name="log_viewer_title">App Logs</string>
+    <string name="log_search_hint">Search tag or message…</string>
+    <string name="log_empty">No log entries matching filter</string>
+    <string name="log_refresh">Refresh</string>
+    <string name="log_clear">Clear</string>
+    <string name="log_share">Share</string>
+    <string name="log_share_subject">UWB Tester Logs</string>
+    <string name="log_capture_logcat">Capture Logcat</string>
+    <string name="log_logcat_section">Logcat Output</string>
+    <string name="capability_logs_action">View Logs</string>
+    <string name="log_filter_all">ALL</string>
+    <string name="log_filter_debug">D+</string>
+    <string name="log_filter_info">I+</string>
+    <string name="log_filter_warn">W+</string>
+    <string name="log_filter_error">E</string>
+
+    <!-- Ranging screen — session expired dialog -->
+    <string name="ranging_session_expired_title">UWB Session Ended</string>
+    <string name="ranging_session_expired_message">The UWB ranging session has expired. Please return to OOB exchange to create a new session.</string>
+    <string name="ranging_session_expired_confirm">Redo OOB Exchange</string>
+    <string name="ranging_session_expired_dismiss">Stay</string>
+
+    <!-- Ranging screen — mode selector -->
+    <string name="ranging_run_in_background">Run in Background</string>
+    <string name="ranging_mode_label">Ranging Mode</string>
+    <string name="ranging_mode_foreground">Foreground Service</string>
+    <string name="ranging_mode_background">Background (Experimental)</string>
+    <string name="ranging_mode_background_warning">Background mode may be stopped by the system at any time. Use Foreground Service for reliable ranging.</string>
+
+    <!-- Foreground service notification -->
+    <string name="notif_channel_name">UWB Ranging</string>
+    <string name="notif_channel_desc">Shows live UWB ranging distance and angle</string>
+    <string name="notif_title">UWB Ranging Active</string>
+    <string name="notif_initializing">Initializing…</string>
+    <string name="notif_distance">Distance: %1$.2f m</string>
+    <string name="notif_azimuth">Az: %1$.1f°</string>
+    <string name="notif_action_stop">Stop</string>
+    <string name="notif_disconnected">Peer disconnected</string>
+    <string name="notif_failure">Ranging failed</string>
+
+    <!-- UWB status badge -->
+    <string name="status_idle">Idle</string>
+    <string name="status_initializing">Initializing</string>
+    <string name="status_active">Active</string>
+    <string name="status_disconnected">Disconnected</string>
+    <string name="status_failure">Failure</string>
 </resources>
