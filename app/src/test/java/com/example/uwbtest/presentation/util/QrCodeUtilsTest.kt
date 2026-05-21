@@ -1,11 +1,9 @@
 package com.example.uwbtest.presentation.util
 
 import com.google.common.truth.Truth.assertThat
-import org.junit.Test
+import org.junit.jupiter.api.Test
 
 class QrCodeUtilsTest {
-
-    // ── buildQrContent ─────────────────────────────────────────────────────
 
     @Test
     fun `buildQrContent - controller includes addr, ch, pr, key`() {
@@ -29,8 +27,6 @@ class QrCodeUtilsTest {
         val result = QrCodeUtils.buildQrContent(addr = "A1:B2", ch = null, pr = null, key = "")
         assertThat(result).doesNotContain(""""key"""")
     }
-
-    // ── parseQrContent ─────────────────────────────────────────────────────
 
     @Test
     fun `parseQrContent - full controller payload returns all fields`() {

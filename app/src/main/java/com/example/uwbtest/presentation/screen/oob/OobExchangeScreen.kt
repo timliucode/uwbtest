@@ -44,8 +44,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.uwbtest.presentation.component.QrCodeImage
 import com.example.uwbtest.presentation.util.QrCodeUtils
-import com.journeyapps.barcodescanner.ScanContract
-import com.journeyapps.barcodescanner.ScanOptions
+import io.github.g00fy2.quickie.QRResult
+import io.github.g00fy2.quickie.ScanQRCode
 
 /**
  * Screen 3：OOB（Out-of-Band）參數交換畫面。
@@ -68,8 +68,11 @@ fun OobExchangeScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
-    val scanLauncher = rememberLauncherForActivityResult(ScanContract()) { result ->
-        result.contents?.let { viewModel.onQrScanned(it) }
+    val scanLauncher = rememberLauncherForActivityResult(ScanQRCode()) { result ->
+        if (result is QRResult.QRSuccess) {
+            val raw = result.content.rawValue ?: return@rememberLauncherForActivityResult
+            viewModel.onQrScanned(raw)
+        }
     }
 
     Scaffold(
@@ -192,14 +195,7 @@ fun OobExchangeScreen(
                 singleLine = true,
             )
             OutlinedButton(
-                onClick = {
-                    scanLauncher.launch(
-                        ScanOptions().apply {
-                            setPrompt("掃描對方裝置的 QR Code")
-                            setOrientationLocked(false)
-                        }
-                    )
-                },
+                onClick = { scanLauncher.launch(null) },
                 modifier = Modifier.fillMaxWidth(),
             ) {
                 Icon(Icons.Default.QrCodeScanner, contentDescription = null)

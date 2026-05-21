@@ -1,30 +1,21 @@
 package com.example.uwbtest.presentation.util
 
 import android.graphics.Bitmap
-import android.graphics.Color
-import com.google.zxing.BarcodeFormat
-import com.google.zxing.EncodeHintType
-import com.google.zxing.qrcode.QRCodeWriter
+import android.graphics.BitmapFactory
+import qrcode.QRCode
 
 object QrCodeUtils {
 
     fun generateQrBitmap(content: String, sizePx: Int = 512): Bitmap {
-        val hints = mapOf(EncodeHintType.MARGIN to 1)
-        val bits = QRCodeWriter().encode(content, BarcodeFormat.QR_CODE, sizePx, sizePx, hints)
-        return Bitmap.createBitmap(sizePx, sizePx, Bitmap.Config.RGB_565).also { bmp ->
-            for (x in 0 until sizePx) {
-                for (y in 0 until sizePx) {
-                    bmp.setPixel(x, y, if (bits[x, y]) Color.BLACK else Color.WHITE)
-                }
-            }
-        }
+        val raw = QRCode.ofSquares()
+            .build(content)
+            .render()
+            .nativeImage() as Bitmap
+        return if (raw.width != sizePx) {
+            Bitmap.createScaledBitmap(raw, sizePx, sizePx, true)
+        } else raw
     }
 
-    /**
-     * 組裝 QR Code 內容字串（JSON 格式）。
-     * Controller 生成時包含 ch + pr；Controlee 生成時只包含 addr。
-     * 掃描後 [parseQrContent] 解析並自動填入對應欄位。
-     */
     fun buildQrContent(addr: String, ch: Int?, pr: Int?, key: String): String = buildString {
         append("""{"addr":"$addr"""")
         if (ch != null) append(""","ch":$ch""")
