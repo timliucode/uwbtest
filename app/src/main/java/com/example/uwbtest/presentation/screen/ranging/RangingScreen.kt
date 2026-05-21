@@ -26,8 +26,8 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
 import androidx.compose.runtime.Composable
+import com.example.uwbtest.presentation.screen.isExpandedLayout
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -58,7 +58,7 @@ fun RangingScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val listState = rememberLazyListState()
-    val isExpanded = currentWindowAdaptiveInfo().windowSizeClass.isWidthAtLeastBreakpoint(840)
+    val isExpanded = isExpandedLayout()
 
     LaunchedEffect(uiState.history.size) {
         if (uiState.history.isNotEmpty()) {
@@ -84,7 +84,7 @@ fun RangingScreen(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(16.dp),
                 ) {
-                    RangingDataPanel(uiState, viewModel, onStop, listState)
+                    RangingDataPanel(uiState, viewModel, onStop, listState, showCanvas = false)
                 }
                 Card(modifier = Modifier.weight(1f)) {
                     UwbPositionCanvas(
@@ -114,6 +114,7 @@ private fun ColumnScope.RangingDataPanel(
     viewModel: RangingViewModel,
     onStop: () -> Unit,
     listState: androidx.compose.foundation.lazy.LazyListState,
+    showCanvas: Boolean = true,
 ) {
     var show3d by remember { mutableStateOf(true) }
     val active = uiState.currentState as? RangingState.Active
@@ -154,8 +155,8 @@ private fun ColumnScope.RangingDataPanel(
 
     Spacer(modifier = Modifier.height(8.dp))
 
-    // 3D visualization card (collapsible)
-    Card(modifier = Modifier.fillMaxWidth()) {
+    // 3D visualization card (collapsible, compact mode only)
+    if (showCanvas) Card(modifier = Modifier.fillMaxWidth()) {
         Column {
             Row(
                 modifier = Modifier
