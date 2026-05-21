@@ -132,7 +132,7 @@
     <string name="notif_title">UWB Ranging Active</string>
     <string name="notif_initializing">Initializing…</string>
     <string name="notif_distance">Distance: %1$.2f m</string>
-    <string name="notif_azimuth">  Az: %1$.1f°</string>
+    <string name="notif_azimuth">Az: %1$.1f°</string>
     <string name="notif_action_stop">Stop</string>
     <string name="notif_disconnected">Peer disconnected</string>
     <string name="notif_failure">Ranging failed</string>

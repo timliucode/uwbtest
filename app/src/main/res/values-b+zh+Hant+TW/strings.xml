@@ -132,7 +132,7 @@
     <string name="notif_title">UWB 測距進行中</string>
     <string name="notif_initializing">初始化中…</string>
     <string name="notif_distance">距離：%1$.2f m</string>
-    <string name="notif_azimuth">  方位角：%1$.1f°</string>
+    <string name="notif_azimuth">方位角：%1$.1f°</string>
     <string name="notif_action_stop">停止</string>
     <string name="notif_disconnected">對端已斷線</string>
     <string name="notif_failure">測距失敗</string>
