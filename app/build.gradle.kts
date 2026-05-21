@@ -14,7 +14,7 @@ android {
 
     defaultConfig {
         applicationId = "com.example.uwbtest"
-        minSdk = 31          // Android 12：UWB_RANGING 權限最低需求
+        minSdk = 33          // Android 13+：完整 UWB 支援及 App-specific language preferences
         targetSdk = 36
         versionCode = ciVersionCode
         versionName = ciVersionName
