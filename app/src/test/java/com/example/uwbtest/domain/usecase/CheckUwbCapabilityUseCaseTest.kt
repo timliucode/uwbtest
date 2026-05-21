@@ -4,8 +4,8 @@ import com.example.uwbtest.domain.model.UwbCapability
 import com.example.uwbtest.domain.repository.UwbRepository
 import com.google.common.truth.Truth.assertThat
 import kotlinx.coroutines.test.runTest
-import org.junit.Before
-import org.junit.Test
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
 
@@ -14,7 +14,7 @@ class CheckUwbCapabilityUseCaseTest {
     private lateinit var repository: UwbRepository
     private lateinit var useCase: CheckUwbCapabilityUseCase
 
-    @Before
+    @BeforeEach
     fun setUp() {
         repository = mock()
         useCase = CheckUwbCapabilityUseCase(repository)

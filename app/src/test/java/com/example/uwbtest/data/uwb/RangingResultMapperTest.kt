@@ -6,8 +6,8 @@ import androidx.core.uwb.RangingResult
 import androidx.core.uwb.UwbDevice
 import com.example.uwbtest.domain.model.RangingState
 import com.google.common.truth.Truth.assertThat
-import org.junit.Before
-import org.junit.Test
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
 
 class RangingResultMapperTest {
 
@@ -15,7 +15,7 @@ class RangingResultMapperTest {
 
     private val dummyDevice = UwbDevice.createForAddress(byteArrayOf(0x01, 0x02))
 
-    @Before
+    @BeforeEach
     fun setUp() {
         mapper = RangingResultMapper()
     }

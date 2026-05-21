@@ -3,30 +3,25 @@ package com.example.uwbtest.presentation.screen.capability
 import app.cash.turbine.test
 import com.example.uwbtest.domain.model.UwbCapability
 import com.example.uwbtest.domain.usecase.CheckUwbCapabilityUseCase
-import com.example.uwbtest.util.MainDispatcherRule
+import com.example.uwbtest.util.MainDispatcherExtension
 import com.google.common.truth.Truth.assertThat
 import kotlinx.coroutines.test.runTest
-import org.junit.Before
-import org.junit.Rule
-import org.junit.Test
-import org.junit.runner.RunWith
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.RegisterExtension
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
-import org.robolectric.RobolectricTestRunner
-import org.robolectric.annotation.Config
-
-@RunWith(RobolectricTestRunner::class)
-@Config(manifest = Config.NONE)
 
 class CapabilityCheckViewModelTest {
 
-    @get:Rule
-    val mainDispatcherRule = MainDispatcherRule()
+    @JvmField
+    @RegisterExtension
+    val mainDispatcherRule = MainDispatcherExtension()
 
     private lateinit var checkCapability: CheckUwbCapabilityUseCase
     private lateinit var viewModel: CapabilityCheckViewModel
 
-    @Before
+    @BeforeEach
     fun setUp() {
         checkCapability = mock()
         viewModel = CapabilityCheckViewModel(checkCapability)
@@ -45,7 +40,6 @@ class CapabilityCheckViewModelTest {
         viewModel.uiState.test {
             assertThat(awaitItem()).isEqualTo(CapabilityCheckViewModel.UiState.Idle)
             viewModel.check()
-            // Loading may be consumed quickly with UnconfinedTestDispatcher
             val nextItems = buildList {
                 val item1 = awaitItem()
                 add(item1)

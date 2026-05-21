@@ -5,8 +5,8 @@ import com.example.uwbtest.domain.model.UwbRole
 import com.example.uwbtest.domain.repository.UwbRepository
 import com.google.common.truth.Truth.assertThat
 import kotlinx.coroutines.test.runTest
-import org.junit.Before
-import org.junit.Test
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
@@ -17,7 +17,7 @@ class GetLocalAddressUseCaseTest {
     private lateinit var repository: UwbRepository
     private lateinit var useCase: GetLocalAddressUseCase
 
-    @Before
+    @BeforeEach
     fun setUp() {
         repository = mock()
         useCase = GetLocalAddressUseCase(repository)
