@@ -25,31 +25,20 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.uwbtest.R
 import com.example.uwbtest.domain.model.RangingState
 import com.example.uwbtest.presentation.component.UwbStatusBadge
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-/**
- * Screen 4：UWB Ranging 結果顯示畫面。
- *
- * 顯示內容：
- *  ● 大字體即時距離（公尺）
- *  ● 方位角 + 仰角（若裝置支援 AoA）
- *  ● UwbStatusBadge（顏色狀態徽章）
- *  ● 最近 50 筆 Active 記錄（LazyColumn）
- *  ● Stop / Retry 按鈕
- *
- * 使用 collectAsStateWithLifecycle()（非 collectAsState()）
- * 確保 App 進入背景時暫停收集，避免不必要的 ranging 耗電。
- */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RangingScreen(
@@ -59,7 +48,6 @@ fun RangingScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val listState = rememberLazyListState()
 
-    // 每次新增歷史記錄時自動捲動到最新
     LaunchedEffect(uiState.history.size) {
         if (uiState.history.isNotEmpty()) {
             listState.animateScrollToItem(uiState.history.lastIndex)
@@ -68,7 +56,7 @@ fun RangingScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(title = { Text("UWB Ranging") })
+            TopAppBar(title = { Text(stringResource(R.string.ranging_title)) })
         },
     ) { innerPadding ->
         Column(
@@ -78,38 +66,31 @@ fun RangingScreen(
                 .padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            // ── 狀態徽章 ───────────────────────────────────────
             UwbStatusBadge(state = uiState.currentState)
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // ── 大字體距離 ─────────────────────────────────────
             val distance = (uiState.currentState as? RangingState.Active)?.distanceMeters
             Text(
-                text = if (distance != null) "%.2f m".format(distance) else "--",
+                text = if (distance != null) "%.2f m".format(distance)
+                       else stringResource(R.string.ranging_distance_placeholder),
                 fontSize = 64.sp,
                 fontFamily = FontFamily.Monospace,
                 textAlign = TextAlign.Center,
             )
 
-            // ── AoA（方位角 + 仰角）──────────────────────────
             val active = uiState.currentState as? RangingState.Active
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(24.dp),
-            ) {
+            Row(horizontalArrangement = Arrangement.spacedBy(24.dp)) {
                 AoaText(
-                    label = "Azimuth",
+                    label = stringResource(R.string.ranging_azimuth),
                     value = active?.azimuthDegrees,
-                    unit = "°",
                 )
                 AoaText(
-                    label = "Elevation",
+                    label = stringResource(R.string.ranging_elevation),
                     value = active?.elevationDegrees,
-                    unit = "°",
                 )
             }
 
-            // ── 錯誤訊息 ───────────────────────────────────────
             if (uiState.errorMessage != null) {
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
@@ -124,14 +105,13 @@ fun RangingScreen(
             HorizontalDivider()
             Spacer(modifier = Modifier.height(8.dp))
 
-            // ── 歷史記錄 ───────────────────────────────────────
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
             ) {
-                Text("測距歷史 / History", style = MaterialTheme.typography.titleSmall)
+                Text(stringResource(R.string.ranging_history_title), style = MaterialTheme.typography.titleSmall)
                 Text(
-                    "${uiState.history.size} / 50",
+                    stringResource(R.string.ranging_history_count, uiState.history.size),
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -149,19 +129,17 @@ fun RangingScreen(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // ── 按鈕列 ─────────────────────────────────────────
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
             ) {
-                // Retry：僅在 Disconnected 或 Failure 時顯示
                 if (uiState.currentState is RangingState.Disconnected ||
                     uiState.currentState is RangingState.Failure
                 ) {
                     OutlinedButton(
                         onClick = { viewModel.start() },
                         modifier = Modifier.weight(1f),
-                    ) { Text("Retry") }
+                    ) { Text(stringResource(R.string.action_retry)) }
                 }
 
                 Button(
@@ -170,17 +148,17 @@ fun RangingScreen(
                         onStop()
                     },
                     modifier = Modifier.weight(1f),
-                ) { Text("停止 / Stop") }
+                ) { Text(stringResource(R.string.action_stop)) }
             }
         }
     }
 }
 
 @Composable
-private fun AoaText(label: String, value: Float?, unit: String) {
+private fun AoaText(label: String, value: Float?) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Text(
-            text = if (value != null) "%.1f%s".format(value, unit) else "N/A",
+            text = if (value != null) "%.1f°".format(value) else stringResource(R.string.ranging_aoa_na),
             style = MaterialTheme.typography.titleMedium,
             fontFamily = FontFamily.Monospace,
         )

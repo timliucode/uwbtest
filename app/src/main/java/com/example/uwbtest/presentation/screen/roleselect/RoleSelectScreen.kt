@@ -24,17 +24,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.example.uwbtest.R
 
-/**
- * Screen 2：角色選擇畫面。
- *
- * Controller：發起 ranging session，決定 UWB 信道（initiator）
- * Controlee：回應 ranging session，向 Controller 回報位置（responder）
- *
- * 此畫面無 ViewModel，點擊直接透過回調導航。
- */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RoleSelectScreen(
@@ -43,7 +37,7 @@ fun RoleSelectScreen(
 ) {
     Scaffold(
         topBar = {
-            TopAppBar(title = { Text("Select Role") })
+            TopAppBar(title = { Text(stringResource(R.string.role_select_title)) })
         },
     ) { innerPadding ->
         Column(
@@ -54,12 +48,12 @@ fun RoleSelectScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             Text(
-                text = "步驟 2 / Step 2",
+                text = stringResource(R.string.step_2),
                 style = MaterialTheme.typography.labelLarge,
                 color = MaterialTheme.colorScheme.primary,
             )
             Text(
-                text = "選擇此裝置在 UWB Ranging 中扮演的角色。\nSelect the role for this device.",
+                text = stringResource(R.string.role_select_description),
                 style = MaterialTheme.typography.bodyMedium,
                 textAlign = TextAlign.Center,
                 modifier = Modifier.fillMaxWidth(),
@@ -73,17 +67,15 @@ fun RoleSelectScreen(
             ) {
                 RoleCard(
                     icon = Icons.Default.Router,
-                    role = "Controller",
-                    roleZh = "控制器",
-                    description = "發起 ranging session\n決定 UWB 信道\n(Initiator)",
+                    role = stringResource(R.string.role_controller),
+                    description = stringResource(R.string.role_controller_desc),
                     onClick = onControllerSelected,
                     modifier = Modifier.weight(1f),
                 )
                 RoleCard(
                     icon = Icons.Default.Smartphone,
-                    role = "Controlee",
-                    roleZh = "受控方",
-                    description = "回應 ranging session\n向 Controller 回報位置\n(Responder)",
+                    role = stringResource(R.string.role_controlee),
+                    description = stringResource(R.string.role_controlee_desc),
                     onClick = onControleeSelected,
                     modifier = Modifier.weight(1f),
                 )
@@ -97,8 +89,7 @@ fun RoleSelectScreen(
                 ),
             ) {
                 Text(
-                    text = "💡 兩台裝置需在同一 Ranging Session 中分別選擇不同角色。\n" +
-                        "Both devices must choose different roles in the same session.",
+                    text = stringResource(R.string.role_both_note),
                     style = MaterialTheme.typography.bodySmall,
                     modifier = Modifier.padding(16.dp),
                 )
@@ -112,7 +103,6 @@ fun RoleSelectScreen(
 private fun RoleCard(
     icon: ImageVector,
     role: String,
-    roleZh: String,
     description: String,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
@@ -134,7 +124,6 @@ private fun RoleCard(
                 tint = MaterialTheme.colorScheme.primary,
             )
             Text(role, style = MaterialTheme.typography.titleMedium)
-            Text(roleZh, style = MaterialTheme.typography.labelMedium)
             Text(
                 description,
                 style = MaterialTheme.typography.bodySmall,

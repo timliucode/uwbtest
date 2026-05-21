@@ -37,21 +37,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.uwbtest.R
 import com.example.uwbtest.domain.model.UwbCapability
 import com.example.uwbtest.presentation.component.PermissionHandler
 
-/**
- * Screen 1：UWB 能力檢查畫面。
- *
- * 顯示內容：
- *  1. 裝置基本資訊（型號、OS 版本、韌體 Build）+ 一鍵複製
- *  2. 申請 UWB_RANGING 執行期權限
- *  3. UWB 硬體層 + 軟體層能力檢查結果
- *  4. Android 13 byte-order 提示（若適用）
- */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CapabilityCheckScreen(
@@ -68,7 +61,7 @@ fun CapabilityCheckScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(title = { Text("UWB Capability Check") })
+            TopAppBar(title = { Text(stringResource(R.string.capability_title)) })
         },
     ) { innerPadding ->
         Column(
@@ -82,12 +75,11 @@ fun CapabilityCheckScreen(
             Spacer(modifier = Modifier.height(4.dp))
 
             Text(
-                text = "步驟 1 / Step 1",
+                text = stringResource(R.string.step_1),
                 style = MaterialTheme.typography.labelLarge,
                 color = MaterialTheme.colorScheme.primary,
             )
 
-            // ── 裝置資訊 + UWB 狀態 + Ranging Capabilities（合一卡）──
             val info = viewModel.deviceInfo
             val capability = (uiState as? CapabilityCheckViewModel.UiState.Success)?.capability
 
@@ -102,11 +94,10 @@ fun CapabilityCheckScreen(
                 },
             )
 
-            // ── UWB 能力狀態 ──────────────────────────────────────
             when (val state = uiState) {
                 is CapabilityCheckViewModel.UiState.Idle -> {
                     Text(
-                        "等待權限申請… / Waiting for permission…",
+                        stringResource(R.string.capability_waiting_permission),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -118,34 +109,24 @@ fun CapabilityCheckScreen(
                         horizontalArrangement = Arrangement.spacedBy(12.dp),
                     ) {
                         CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
-                        Text("Checking UWB availability…")
+                        Text(stringResource(R.string.capability_checking))
                     }
                 }
 
+                is CapabilityCheckViewModel.UiState.PermissionDenied -> {
+                    ErrorCard(message = stringResource(R.string.capability_permission_denied))
+                    Spacer(modifier = Modifier.height(8.dp))
+                    OutlinedButton(
+                        onClick = { viewModel.check() },
+                        modifier = Modifier.fillMaxWidth(),
+                    ) { Text(stringResource(R.string.action_retry)) }
+                }
+
                 is CapabilityCheckViewModel.UiState.Success -> {
-                    // DeviceInfoCard 已顯示 UWB Hardware / UWB Available，
-                    // 此處只補充「不可用時的原因說明」
                     if (!state.capability.isAvailable && state.capability.unavailableReason != null) {
-                        Card(
-                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer),
-                            modifier = Modifier.fillMaxWidth(),
-                        ) {
-                            Row(
-                                modifier = Modifier.padding(16.dp),
-                                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                                verticalAlignment = Alignment.Top,
-                            ) {
-                                Icon(Icons.Default.Error, null, tint = MaterialTheme.colorScheme.error)
-                                Text(
-                                    text = state.capability.unavailableReason,
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onErrorContainer,
-                                )
-                            }
-                        }
+                        ErrorCard(message = state.capability.unavailableReason)
                     }
 
-                    // Android 13 byte-order 提示
                     if (state.capability.isAndroid13OrLower && state.capability.isAvailable) {
                         Card(
                             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.tertiaryContainer),
@@ -158,10 +139,7 @@ fun CapabilityCheckScreen(
                             ) {
                                 Icon(Icons.Default.Warning, null, tint = MaterialTheme.colorScheme.tertiary)
                                 Text(
-                                    text = "💡 Android 13 偵測到\n" +
-                                        "此 OS 版本存在 UWB 地址 byte-order 已知問題。\n" +
-                                        "若 ranging 無法建立，請在下一步開啟「Reverse Bytes」開關。\n\n" +
-                                        "Android 13 detected. If ranging fails, try toggling 'Reverse Bytes' on the OOB screen.",
+                                    text = stringResource(R.string.capability_android13_warning),
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onTertiaryContainer,
                                 )
@@ -178,40 +156,23 @@ fun CapabilityCheckScreen(
                         OutlinedButton(
                             onClick = { viewModel.check() },
                             modifier = Modifier.weight(1f),
-                        ) { Text("Retry") }
+                        ) { Text(stringResource(R.string.action_retry)) }
 
                         Button(
                             onClick = onProceed,
                             enabled = state.capability.canProceed,
                             modifier = Modifier.weight(1f),
-                        ) { Text("繼續 / Continue") }
+                        ) { Text(stringResource(R.string.action_continue)) }
                     }
                 }
 
                 is CapabilityCheckViewModel.UiState.Error -> {
-                    Card(
-                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer),
-                        modifier = Modifier.fillMaxWidth(),
-                    ) {
-                        Row(
-                            modifier = Modifier.padding(16.dp),
-                            horizontalArrangement = Arrangement.spacedBy(12.dp),
-                            verticalAlignment = Alignment.Top,
-                        ) {
-                            Icon(Icons.Default.Error, null, tint = MaterialTheme.colorScheme.error)
-                            Text(
-                                state.message,
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onErrorContainer,
-                            )
-                        }
-                    }
-
+                    ErrorCard(message = state.message)
                     Spacer(modifier = Modifier.height(8.dp))
                     OutlinedButton(
                         onClick = { viewModel.check() },
                         modifier = Modifier.fillMaxWidth(),
-                    ) { Text("Retry") }
+                    ) { Text(stringResource(R.string.action_retry)) }
                 }
             }
 
@@ -220,7 +181,26 @@ fun CapabilityCheckScreen(
     }
 }
 
-// ── 裝置資訊 + UWB 狀態 + Ranging Capabilities 合一卡 ──────────
+@Composable
+private fun ErrorCard(message: String) {
+    Card(
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer),
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        Row(
+            modifier = Modifier.padding(16.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalAlignment = Alignment.Top,
+        ) {
+            Icon(Icons.Default.Error, null, tint = MaterialTheme.colorScheme.error)
+            Text(
+                text = message,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onErrorContainer,
+            )
+        }
+    }
+}
 
 @Composable
 private fun DeviceInfoCard(
@@ -236,68 +216,81 @@ private fun DeviceInfoCard(
     ) {
         Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
 
-            // ── 卡片標題列 ────────────────────────────────────────
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Text("裝置資訊 / Device Info", style = MaterialTheme.typography.titleSmall)
+                Text(stringResource(R.string.device_info_title), style = MaterialTheme.typography.titleSmall)
                 IconButton(onClick = onCopy, modifier = Modifier.size(32.dp)) {
                     Icon(
                         Icons.Default.ContentCopy,
-                        contentDescription = "複製完整報告",
+                        contentDescription = stringResource(R.string.cd_copy_report),
                         modifier = Modifier.size(18.dp),
                     )
                 }
             }
 
-            // ── 裝置基本資訊 ──────────────────────────────────────
-            InfoRow("Manufacturer", info.manufacturer)
-            InfoRow("Model", info.model)
-            InfoRow("Android", "${info.androidVersion}  (API ${info.sdkLevel})")
+            InfoRow(stringResource(R.string.device_manufacturer), info.manufacturer)
+            InfoRow(stringResource(R.string.device_model), info.model)
+            InfoRow(
+                stringResource(R.string.device_android),
+                stringResource(R.string.device_android_value, info.androidVersion, info.sdkLevel),
+            )
             if (info.oneUiVersion != null) {
-                InfoRow("OneUI", info.oneUiVersion)
+                InfoRow(stringResource(R.string.device_oneui), info.oneUiVersion)
             }
-            InfoRow("Build", info.buildDisplay)
+            InfoRow(stringResource(R.string.device_build), info.buildDisplay)
 
-            // ── UWB 狀態（檢查完成後才顯示）─────────────────────
             if (capability != null) {
                 HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
-                SectionLabel("UWB 狀態 / Status")
+                SectionLabel(stringResource(R.string.uwb_status_section))
                 InfoRow(
-                    label = "Hardware",
-                    value = if (capability.hardwarePresent) "Present ✓" else "Not found ✗",
-                    valueColor = if (capability.hardwarePresent) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error,
+                    label = stringResource(R.string.uwb_hardware),
+                    value = if (capability.hardwarePresent) stringResource(R.string.label_present)
+                            else stringResource(R.string.label_not_found),
+                    valueColor = if (capability.hardwarePresent) MaterialTheme.colorScheme.primary
+                                 else MaterialTheme.colorScheme.error,
                 )
                 InfoRow(
-                    label = "Available",
-                    value = if (capability.isAvailable) "Yes ✓" else "No ✗",
-                    valueColor = if (capability.isAvailable) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error,
+                    label = stringResource(R.string.uwb_available),
+                    value = if (capability.isAvailable) stringResource(R.string.label_yes)
+                            else stringResource(R.string.label_no),
+                    valueColor = if (capability.isAvailable) MaterialTheme.colorScheme.primary
+                                 else MaterialTheme.colorScheme.error,
                 )
             }
 
-            // ── Ranging Capabilities（isAvailable == true 時才有）
+            val labelSupported = stringResource(R.string.label_supported)
+            val labelNotSupported = stringResource(R.string.label_not_supported)
+
             capability?.rangingCapabilities?.let { caps ->
-                fun Boolean.toSupportText() = if (this) "Supported ✓" else "Not supported ✗"
+                fun Boolean.toSupportText() =
+                    if (this) labelSupported else labelNotSupported
 
                 HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
-                SectionLabel("Ranging Capabilities")
+                SectionLabel(stringResource(R.string.ranging_capabilities_section))
 
-                InfoRow("Distance Ranging", caps.isDistanceSupported.toSupportText())
-                InfoRow("Azimuthal Angle (AoA)", caps.isAzimuthalAngleSupported.toSupportText())
-                InfoRow("Elevation Angle (3D)", caps.isElevationAngleSupported.toSupportText())
-                InfoRow("Background Ranging", caps.isBackgroundRangingSupported.toSupportText())
-                InfoRow("Interval Reconfigure", caps.isRangingIntervalReconfigureSupported.toSupportText())
+                InfoRow(stringResource(R.string.cap_distance_ranging), caps.isDistanceSupported.toSupportText())
+                InfoRow(stringResource(R.string.cap_azimuthal_angle), caps.isAzimuthalAngleSupported.toSupportText())
+                InfoRow(stringResource(R.string.cap_elevation_angle), caps.isElevationAngleSupported.toSupportText())
+                InfoRow(stringResource(R.string.cap_background_ranging), caps.isBackgroundRangingSupported.toSupportText())
+                InfoRow(stringResource(R.string.cap_interval_reconfigure), caps.isRangingIntervalReconfigureSupported.toSupportText())
 
                 HorizontalDivider(modifier = Modifier.padding(vertical = 2.dp))
 
-                InfoRow("Min Ranging Interval", "${caps.minRangingInterval} ms")
-                InfoRow("Channels", caps.supportedChannels.sorted().joinToString(", ").ifEmpty { "—" })
-                InfoRow("Config IDs", caps.supportedConfigIds.sorted().joinToString(", ").ifEmpty { "—" })
-                InfoRow("NTF Configs", caps.supportedNtfConfigs.sorted().joinToString(", ").ifEmpty { "—" })
-                InfoRow("Slot Durations", caps.supportedSlotDurations.sorted().joinToString(", ").ifEmpty { "—" })
-                InfoRow("Update Rates", caps.supportedRangingUpdateRates.sorted().joinToString(", ").ifEmpty { "—" })
+                InfoRow(stringResource(R.string.cap_min_interval),
+                    stringResource(R.string.cap_min_interval_value, caps.minRangingInterval))
+                InfoRow(stringResource(R.string.cap_channels),
+                    caps.supportedChannels.sorted().joinToString(", ").ifEmpty { "—" })
+                InfoRow(stringResource(R.string.cap_config_ids),
+                    caps.supportedConfigIds.sorted().joinToString(", ").ifEmpty { "—" })
+                InfoRow(stringResource(R.string.cap_ntf_configs),
+                    caps.supportedNtfConfigs.sorted().joinToString(", ").ifEmpty { "—" })
+                InfoRow(stringResource(R.string.cap_slot_durations),
+                    caps.supportedSlotDurations.sorted().joinToString(", ").ifEmpty { "—" })
+                InfoRow(stringResource(R.string.cap_update_rates),
+                    caps.supportedRangingUpdateRates.sorted().joinToString(", ").ifEmpty { "—" })
             }
         }
     }
@@ -337,8 +330,6 @@ private fun InfoRow(
         )
     }
 }
-
-// ── Clipboard helper ────────────────────────────────────────────
 
 private fun Context.copyToClipboard(label: String, text: String) {
     val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager

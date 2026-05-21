@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">UWB Tester</string>
+
+    <!-- Shared actions -->
+    <string name="action_retry">重試</string>
+    <string name="action_continue">繼續</string>
+    <string name="action_stop">停止</string>
+    <string name="cd_copy">複製</string>
+
+    <!-- Shared status labels -->
+    <string name="label_supported">支援 ✓</string>
+    <string name="label_not_supported">不支援 ✗</string>
+    <string name="label_present">存在 ✓</string>
+    <string name="label_not_found">未偵測到 ✗</string>
+    <string name="label_yes">是 ✓</string>
+    <string name="label_no">否 ✗</string>
+
+    <!-- Step labels -->
+    <string name="step_1">步驟 1，共 4 步</string>
+    <string name="step_2">步驟 2，共 4 步</string>
+    <string name="step_3">步驟 3，共 4 步</string>
+
+    <!-- Capability Check screen -->
+    <string name="capability_title">UWB 能力檢查</string>
+    <string name="capability_waiting_permission">等待授予權限…</string>
+    <string name="capability_checking">正在檢查 UWB 可用性…</string>
+    <string name="capability_permission_denied">UWB_RANGING 權限遭拒。請至設定中授予此權限。</string>
+    <string name="capability_android13_warning">偵測到 Android 13。若測距失敗，請嘗試在 OOB 畫面中開啟「位元組反轉」功能。</string>
+
+    <!-- Device info card -->
+    <string name="device_info_title">裝置資訊</string>
+    <string name="cd_copy_report">複製完整報告</string>
+    <string name="device_manufacturer">製造商</string>
+    <string name="device_model">型號</string>
+    <string name="device_android">Android</string>
+    <string name="device_android_value">%1$s（API %2$d）</string>
+    <string name="device_oneui">OneUI</string>
+    <string name="device_build">建構版本</string>
+
+    <!-- UWB status section -->
+    <string name="uwb_status_section">UWB 狀態</string>
+    <string name="uwb_hardware">硬體</string>
+    <string name="uwb_available">可用性</string>
+
+    <!-- Ranging capabilities section -->
+    <string name="ranging_capabilities_section">測距能力</string>
+    <string name="cap_distance_ranging">距離測量</string>
+    <string name="cap_azimuthal_angle">方位角 (AoA)</string>
+    <string name="cap_elevation_angle">仰角 (3D)</string>
+    <string name="cap_background_ranging">背景測距</string>
+    <string name="cap_interval_reconfigure">間隔重設</string>
+    <string name="cap_min_interval">最小測距間隔</string>
+    <string name="cap_min_interval_value">%1$d ms</string>
+    <string name="cap_channels">信道</string>
+    <string name="cap_config_ids">設定 ID</string>
+    <string name="cap_ntf_configs">NTF 設定</string>
+    <string name="cap_slot_durations">時槽長度</string>
+    <string name="cap_update_rates">更新率</string>
+
+    <!-- Role Select screen -->
+    <string name="role_select_title">選擇角色</string>
+    <string name="role_select_description">選擇此裝置在 UWB 測距會話中扮演的角色。</string>
+    <string name="role_controller">Controller</string>
+    <string name="role_controlee">Controlee</string>
+    <string name="role_controller_desc">發起測距會話\n決定 UWB 信道\n（主動方）</string>
+    <string name="role_controlee_desc">回應測距會話\n向 Controller 回報位置\n（被動方）</string>
+    <string name="role_both_note">兩台裝置必須在同一會話中分別選擇不同角色。</string>
+
+    <!-- OOB Exchange screen -->
+    <string name="oob_title_controller">Controller — OOB 參數交換</string>
+    <string name="oob_title_controlee">Controlee — OOB 參數交換</string>
+    <string name="oob_description">在兩台裝置之間手動交換 UWB 參數。</string>
+    <string name="oob_my_address_title">本機地址</string>
+    <string name="oob_loading_address">正在取得本機 UWB 地址…</string>
+    <string name="oob_channel_preamble_value">信道：%1$s  |  前導碼：%2$s</string>
+    <string name="cd_copy_address">複製地址</string>
+    <string name="oob_peer_address_title">對端地址</string>
+    <string name="oob_peer_address_label">對端 UWB 地址（十六進位，例：A1:B2）</string>
+    <string name="oob_peer_address_hint">輸入對端 UWB 地址，或掃描對方的 QR Code</string>
+    <string name="oob_scan_qr">掃描 QR Code</string>
+    <string name="oob_channel_params_title">信道參數</string>
+    <string name="oob_channel_params_hint">從 Controller 的本機地址卡片取得（例：CH:9 → 填 9，PR:11 → 填 11）</string>
+    <string name="oob_channel_label">信道</string>
+    <string name="oob_preamble_label">前導碼</string>
+    <string name="oob_session_key_title">Session Key（兩端必須相同）</string>
+    <string name="oob_session_key_hint_controller">已隨機生成，將包含在 QR Code 中自動傳遞給對方</string>
+    <string name="oob_session_key_hint_controlee">掃描 Controller 的 QR Code 後自動填入，可手動修改</string>
+    <string name="oob_session_key_label">Session Key（16 個十六進位字元 = 8 位元組）</string>
+    <string name="oob_reverse_bytes_title">位元組反轉</string>
+    <string name="oob_reverse_bytes_desc">對端地址位元組序反轉（Android 13 偵錯工具）</string>
+    <string name="oob_start_ranging">開始測距</string>
+
+    <!-- Ranging screen -->
+    <string name="ranging_title">UWB 測距</string>
+    <string name="ranging_distance_placeholder">--</string>
+    <string name="ranging_azimuth">方位角</string>
+    <string name="ranging_elevation">仰角</string>
+    <string name="ranging_aoa_na">無 AoA</string>
+    <string name="ranging_history_title">歷史記錄</string>
+    <string name="ranging_history_count">%1$d / 50</string>
+
+    <!-- UWB status badge -->
+    <string name="status_idle">閒置</string>
+    <string name="status_initializing">初始化中</string>
+    <string name="status_active">測距中</string>
+    <string name="status_disconnected">已斷線</string>
+    <string name="status_failure">失敗</string>
+</resources>
